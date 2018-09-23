@@ -19,6 +19,10 @@
 import datetime
 from Queue import Queue
 
+from opencensus.trace import attributes_helper
+from opencensus.trace import execution_context
+from opencensus.trace import span as span_module
+
 from google.cloud.forseti.common.util import date_time
 from google.cloud.forseti.common.util import logger
 from google.cloud.forseti.services.inventory.storage import DataAccess
@@ -164,7 +168,10 @@ def run_inventory(service_config,
     Raises:
         Exception: Reraises any exception.
     """
-
+    _tracer = execution_context.get_opencensus_tracer()
+    _span = tracer.start_span()
+    _span.name = '[requests]{}'.format(requests_func._name_)
+    _span.span_kind = span_module.SpanKind.CLIENT
     storage_cls = service_config.get_storage_class()
     with storage_cls(session) as storage:
         try:
@@ -180,6 +187,8 @@ def run_inventory(service_config,
             raise
         else:
             storage.commit()
+        _tracer.add_attribute_to_current_span(HTTP_STATUS_CODE, str(result.status_code))
+        _tracer.end_span()
         return result
 
 
