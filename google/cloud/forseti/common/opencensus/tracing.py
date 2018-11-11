@@ -256,7 +256,6 @@ def get_class_tracer(self, attr='tracer', _lambda=None):
         tracer = execution_context.get_opencensus_tracer()
 
     # set tracer to instance attribute (support nested)
-    LOGGER.info("%s: Setting tracer to 'self.%s'", self.__class__.__name__, attr)
     rsetattr(self, attr, tracer)
 
     return tracer
