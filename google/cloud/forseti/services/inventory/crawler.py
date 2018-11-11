@@ -74,7 +74,7 @@ class ParallelCrawlerConfig(crawler.CrawlerConfig):
         self.client = api_client
 
 
-# @tracing.traced(attr='config.tracer', methods=['visit', 'update'])
+@tracing.traced(attr='config.tracer', methods=['visit', 'update'])
 class Crawler(crawler.Crawler):
     """Simple single-threaded Crawler implementation."""
 
@@ -134,8 +134,8 @@ class Crawler(crawler.Crawler):
             raise
         else:
             progresser.on_new_object(resource)
-        #finally:
-            #tracing.end_span(self.config.tracer, **attrs)
+        finally:
+            tracing.set_attributes(self.config.tracer, **attrs)
 
     def dispatch(self, callback):
         """Dispatch crawling of a subtree.
