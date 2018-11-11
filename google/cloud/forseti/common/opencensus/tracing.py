@@ -189,6 +189,7 @@ def traced(attr='tracer', _lambda=None, methods='all'):
                 LOGGER.info("Decorating %s.%s for tracing.", cls.__name__, name)
                 setattr(cls, name, trace(attr, _lambda)(fn))
         return cls
+    return wrapper
 
 
 def trace(attr='tracer', _lambda=None):
