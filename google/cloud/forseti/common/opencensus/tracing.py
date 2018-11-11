@@ -257,7 +257,6 @@ def get_class_tracer(self, attr='tracer', _lambda=None):
 
     # set tracer to instance attribute (support nested)
     LOGGER.info("%s: Setting tracer to 'self.%s'", self.__class__.__name__, attr)
-    LOGGER.info(tracer.span_context)
     rsetattr(self, attr, tracer)
 
     return tracer
