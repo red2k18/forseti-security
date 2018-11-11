@@ -211,8 +211,9 @@ def trace(attr='tracer', _lambda=None):
         def inner_wrapper(self, *args, **kwargs):
             if OPENCENSUS_ENABLED:
                 tracer = get_class_tracer(self, attr, _lambda)
-                LOGGER.info(tracer.span_context)
-                start_span(tracer, f.__module__.split('.')[-1], f.__name__)
+                module_str = f.__module__.split('.')[-1]
+                LOGGER.info("%s.%s: %s", module_str, f.__name__, tracer.span_context)
+                start_span(tracer, module_str, f.__name__)
 
             result = f(self, *args, **kwargs)
 
