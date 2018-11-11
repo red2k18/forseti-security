@@ -74,7 +74,7 @@ class ParallelCrawlerConfig(crawler.CrawlerConfig):
         self.client = api_client
 
 
-@tracing.traced(attr='config.tracer', methods=['visit', 'update'])
+# @tracing.traced(attr='config.tracer', methods=['visit', 'update'])
 class Crawler(crawler.Crawler):
     """Simple single-threaded Crawler implementation."""
 
