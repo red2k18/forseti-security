@@ -244,11 +244,11 @@ def get_class_tracer(self, attr='tracer', _lambda=None):
                               lambda function.
     """
     if _lambda is not None: # get tracer from lambda
-        LOGGER.debug("Getting tracer from lambda function.")
+        LOGGER.debug("%s: Getting tracer from lambda function." % self.__name__)
         tracer = _lambda(self)
 
     elif attr is not None: # get tracer from instance attribute (support nested)
-        LOGGER.debug("Getting tracer from 'self.%s'." % attr)
+        LOGGER.debug("%s: Getting tracer from 'self.%s'.", self.__name__, attr)
         tracer = rgetattr(self, attr, None)
 
     if tracer is None: # get tracer from OpenCensus context
@@ -256,7 +256,7 @@ def get_class_tracer(self, attr='tracer', _lambda=None):
         tracer = execution_context.get_opencensus_tracer()
 
     # set tracer to instance attribute (support nested)
-    LOGGER.info("Setting tracer to 'self.%s'", attr)
+    LOGGER.info("%s: Setting tracer to 'self.%s'", self.__name__, attr)
     rsetattr(self, attr, tracer)
 
     return tracer
