@@ -206,7 +206,7 @@ def run_import(client, model_name, inventory_index_id, background):
                                   background)
 
 
-@tracing.traced
+@tracing.traced('config.tracer')
 class Inventory(object):
     """Inventory API implementation."""
 

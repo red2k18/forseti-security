@@ -16,7 +16,7 @@
 
 import inspect
 from google.cloud.forseti.common.util import logger
-#from functools import wraps
+import functools
 
 LOGGER = logger.get_logger(__name__)
 DEFAULT_INTEGRATIONS = ['requests', 'sqlalchemy', 'threading']
@@ -127,10 +127,10 @@ def create_exporter(transport=None):
             'StackdriverExporter set up failed. Using FileExporter.')
         return file_exporter.FileExporter(transport=transport)
 
-    
+
 def start_span(tracer, module, function, kind=None):
     """Start a span.
-    
+
     Args:
         tracer (~opencensus.trace.tracer.Tracer): OpenCensus tracer object.
         module (str): The module name.
@@ -146,10 +146,11 @@ def start_span(tracer, module, function, kind=None):
     tracer.add_attribute_to_current_span('module', module)
     tracer.add_attribute_to_current_span('function', function)
     return span
-    
+
+
 def end_span(tracer, **kwargs):
     """End a span.
-    
+
     Args:
         tracer (~opencensus.trace.tracer.Tracer): OpenCensus tracer object.
         kwargs (dict): A set of attributes to set to the current span.
@@ -158,55 +159,146 @@ def end_span(tracer, **kwargs):
     set_attributes(tracer, **kwargs)
     tracer.end_span()
 
+
 def set_attributes(tracer, **kwargs):
+    """Set attributes for the current span.
+
+    Args:
+        tracer (~opencensus.trace.tracer.Tracer): OpenCensus tracer object.
+        kwargs (dict): A set of attributes to set to the current span.
+    """
     for k, v in kwargs.items():
         tracer.add_attribute_to_current_span(k, v)
 
-def traced(cls):
-    for name, fn in inspect.getmembers(cls, inspect.ismethod):
-        setattr(cls, name, trace_decorator(fn))
-    return cls
 
-def trace_decorator(func):
-    def wrapper(self, *args, **kwargs):
-        tracer = execution_context.get_opencensus_tracer()
-        LOGGER.debug("%s.%s: %s", func.__module__, func.__name__, tracer.span_context)
-        if hasattr(self, 'config'):
-            self.config.tracer = tracer
-        else:
-            self.tracer = tracer
-        return func(self, *args, **kwargs)
-    return wrapper
+def traced(attr='tracer', _lambda=None, methods='all'):
+    """Decorate selected class methods to trace.
 
-def trace(_lambda=None, attr=None):
-    """Decorator to trace class methods. 
-    
-    This decorator expect the tracer is set in the class via an instance attribute, 
-    or is fetchable using a lambda function. 
-    
-    If nothing is passed to the decorator, it will use the execution context to get 
-    the tracer.
-    
     Args:
-        _lambda (func, optional): A lambda definition defining how to get the tracer.
-        attr (str, optional): The attribute to fetch from the instance.
-        
+        attr (`string`): If passed, get/set the OpenCensus tracer from the
+                         instance attribute.
+        _lambda (`function`): If passed, fetch the OpenCensus tracer from the
+                              lambda function.
+
     Returns:
-        func: The decorated class method.
+       `object`: The decorated class.
     """
-    def decorator(func):
-        def wrapper(self, *args, **kwargs):
+    def wrapper(cls):
+        for name, fn in inspect.getmembers(cls, inspect.ismethod):
+            if methods == 'all' or (isinstance(methods, list) and name in methods):
+                LOGGER.info("Decorating %s.%s for tracing.", cls.__name__, name)
+                setattr(cls, name, trace(attr, _lambda)(fn))
+        return cls
+
+
+def trace(attr='tracer', _lambda=None):
+    """Decorator to trace class methods.
+
+    If nothing is passed,
+
+    Args:
+        attr (`string`): If passed, get / set the OpenCensus tracer to the
+                         instance attribute.
+        _lambda (`function`): If passed, fetch the OpenCensus tracer from the
+                              lambda function.
+    Returns:
+        `function`: The decorated method.
+    """
+    def outer_wrapper(f):
+        def inner_wrapper(self, *args, **kwargs):
             if OPENCENSUS_ENABLED:
-                if _lambda is not None:
-                    tracer = _lambda(self)
-                elif attr is not None:
-                    tracer = getattr(self, attr, None)
-                else: # no arg passed to decorator, getting tracer from context
-                    tracer = execution_context.get_opencensus_tracer()
-                module_str = func.__module__.split('.')[-1]
-                span = start_span(tracer, module_str, func.__name__)
-            result = func(self, *args, **kwargs)
+                tracer = get_class_tracer(self, attr, _lambda)
+                LOGGER.info(tracer.span_context)
+                start_span(tracer, f.__module__.split('.')[-1], f.__name__)
+
+            result = f(self, *args, **kwargs)
+
             if OPENCENSUS_ENABLED:
                 end_span(tracer, result=result)
-        return wrapper
-    return decorator
+
+            return result
+        return inner_wrapper
+    return outer_wrapper
+
+
+def get_class_tracer(self, attr='tracer', _lambda=None):
+    """Get OpenCensus tracer for a class.
+
+    This method is used to get / set the tracer when working in the context of
+    a class.
+
+    Get a tracer from the current context (such as an attribute of the class
+    instance, or a lambda function), and to set it to` the desired attribute.
+
+    If none of `get_attr`, `set_attr` or `_lambda` is passed, get the tracer
+    from OpenCensus context.
+
+    Args:
+        attr (`string`): If passed, get/set the OpenCensus tracer from the
+                         instance attribute. Support nested attributes.
+        _lambda (`function`): If passed, fetch the OpenCensus tracer from the
+                              lambda function.
+    """
+    if _lambda is not None: # get tracer from lambda
+        LOGGER.debug("Getting tracer from lambda function.")
+        tracer = _lambda(self)
+
+    elif attr is not None: # get tracer from instance attribute (support nested)
+        LOGGER.debug("Getting tracer from 'self.%s'." % attr)
+        tracer = rgetattr(self, attr, None)
+
+    if tracer is None: # get tracer from OpenCensus context
+        LOGGER.info("Getting tracer from OpenCensus execution context")
+        tracer = execution_context.get_opencensus_tracer()
+
+    # set tracer to instance attribute (support nested)
+    LOGGER.info("Setting tracer to 'self.%s'", attr)
+    rsetattr(self, attr, tracer)
+
+    return tracer
+
+
+def rsetattr(obj, attr, val):
+    """Set nested attribute in object."""
+    pre, _, post = attr.rpartition('.')
+    return setattr(rgetattr(obj, pre) if pre else obj, post, val)
+
+
+def rgetattr(obj, attr, *args):
+    """Get nested attribute in object."""
+    def _getattr(obj, attr):
+        return getattr(obj, attr, *args)
+    return functools.reduce(_getattr, [obj] + attr.split('.'))
+
+# def trace(_lambda=None, attr=None):
+#     """Decorator to trace class methods.
+
+#     This decorator expect the tracer is set in the class via an instance attribute,
+#     or is fetchable using a lambda function.
+
+#     If nothing is passed to the decorator, it will use the execution context to get
+#     the tracer.
+
+#     Args:
+#         _lambda (func, optional): A lambda definition defining how to get the tracer.
+#         attr (str, optional): The attribute to fetch from the instance.
+
+#     Returns:
+#         func: The decorated class method.
+#     """
+#     def decorator(func):
+#         def wrapper(self, *args, **kwargs):
+#             if OPENCENSUS_ENABLED:
+#                 if _lambda is not None:
+#                     tracer = _lambda(self)
+#                 elif attr is not None:
+#                     tracer = getattr(self, attr, None)
+#                 else: # no arg passed to decorator, getting tracer from context
+#                     tracer = execution_context.get_opencensus_tracer()
+#                 module_str = func.__module__.split('.')[-1]
+#                 span = start_span(tracer, module_str, func.__name__)
+#             result = func(self, *args, **kwargs)
+#             if OPENCENSUS_ENABLED:
+#                 end_span(tracer, result=result)
+#         return wrapper
+#     return decorator

@@ -74,6 +74,7 @@ class ParallelCrawlerConfig(crawler.CrawlerConfig):
         self.client = api_client
 
 
+@tracing.traced(attr='config.tracer', methods=['visit', 'update'])
 class Crawler(crawler.Crawler):
     """Simple single-threaded Crawler implementation."""
 
@@ -97,8 +98,7 @@ class Crawler(crawler.Crawler):
         """
         resource.accept(self)
         return self.config.progresser
-    
-    @tracing.trace(lambda x: x.config.tracer)
+
     def visit(self, resource):
         """Handle a newly found resource.
 
@@ -124,7 +124,7 @@ class Crawler(crawler.Crawler):
             resource.get_billing_info(self.get_client())
             resource.get_enabled_apis(self.get_client())
             resource.get_kubernetes_service_config(self.get_client())
-            
+
             self.write(resource)
         except Exception as e:
             LOGGER.exception(e)
@@ -175,7 +175,6 @@ class Crawler(crawler.Crawler):
         self.config.storage.warning(warning_message)
         self.config.progresser.on_warning(error)
 
-    @tracing.trace(lambda x: x.config.tracer)    
     def update(self, resource):
         """Update the row of an existing resource
 
@@ -295,7 +294,7 @@ class ParallelCrawler(Crawler):
             LOGGER.exception(e)
             self.config.progresser.on_error(e)
             raise
- 
+
 def run_crawler(storage,
                 progresser,
                 config,
