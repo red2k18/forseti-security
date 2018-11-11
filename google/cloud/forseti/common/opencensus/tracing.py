@@ -185,6 +185,8 @@ def traced(attr='tracer', _lambda=None, methods='all'):
     """
     def wrapper(cls):
         for name, fn in inspect.getmembers(cls, inspect.ismethod):
+            if name == '__init__':
+                continue
             if methods == 'all' or (isinstance(methods, list) and name in methods):
                 LOGGER.info("Decorating %s.%s for tracing.", cls.__name__, name)
                 setattr(cls, name, trace(attr, _lambda)(fn))
