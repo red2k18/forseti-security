@@ -180,6 +180,8 @@ def traced(cls):
         object: Decorated class
     """
     for name, func in inspect.getmembers(cls, inspect.ismethod):
+        if name == '__init__':
+            continue
         setattr(cls, name, trace_decorator(func))
     return cls
 
