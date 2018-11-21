@@ -76,7 +76,7 @@ class ParallelCrawlerConfig(crawler.CrawlerConfig):
         self.client = api_client
 
 
-@tracing.traced
+# @tracing.traced
 class Crawler(crawler.Crawler):
     """Simple single-threaded Crawler implementation."""
 
