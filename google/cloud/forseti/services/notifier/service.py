@@ -19,11 +19,13 @@ from Queue import Queue
 from google.cloud.forseti.notifier import notifier
 from google.cloud.forseti.services.notifier import notifier_pb2
 from google.cloud.forseti.services.notifier import notifier_pb2_grpc
+from google.cloud.forseti.common.opencensus import tracing
 from google.cloud.forseti.common.util import logger
 
 LOGGER = logger.get_logger(__name__)
 
 
+@tracing.traced
 class GrpcNotifier(notifier_pb2_grpc.NotifierServicer):
     """Notifier gRPC implementation."""
 
@@ -71,7 +73,6 @@ class GrpcNotifier(notifier_pb2_grpc.NotifierServicer):
 
         return notifier_pb2.PingReply(data=request.data)
 
-    #@tracing.trace(lambda x: x.tracer)
     def Run(self, request, _):
         """Run notifier.
 
@@ -93,7 +94,6 @@ class GrpcNotifier(notifier_pb2_grpc.NotifierServicer):
         for progress_message in iter(progress_queue.get, None):
             yield notifier_pb2.Progress(server_message=progress_message)
 
-    #@tracing.trace(lambda x: x.tracer)
     def _run_notifier(self, inventory_index_id, progress_queue):
         """Run notifier.
 

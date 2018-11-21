@@ -14,6 +14,7 @@
 
 """Forseti OpenCensus gRPC tracing setup."""
 
+import functools
 import inspect
 from google.cloud.forseti.common.util import logger
 #from functools import wraps
@@ -172,12 +173,13 @@ def set_attributes(tracer, **kwargs):
         tracer.add_attribute_to_current_span(key, value)
 
 def traced(cls):
-    """Class decorator
+    """Class decorator for tracing. Applies to all methods of the class.
 
     Args:
-        cls (object): Class to decorate
+        cls (object): Class to decorate.
+
     Returns:
-        object: Decorated class
+        object: Decorated class.
     """
     for name, func in inspect.getmembers(cls, inspect.ismethod):
         if name == '__init__':
@@ -185,79 +187,135 @@ def traced(cls):
         setattr(cls, name, trace_decorator(func))
     return cls
 
-def trace_decorator(func):
-    """ Method decorator to trace a method
+
+def get_tracer(inst, attr=None):
+    """Get a tracer from the current context.
+
+    This function can get a tracer from any instance attribute if `attr` is
+    passed.
+
+    Otherwise, it will look for a tracer in the DEFAULT_ATTRIBUTES before
+    falling back on the OpenCensus execution context tracer.
+
+    Arguments:
+        inst: An instance of a class.
+        attr (str, optional): The attribute to get / set the tracer from / to.
+
+    Returns:
+        tracer (opencensus.trace.Tracer): The tracer to be used.
+    """
+    default_attributes = ['tracer', 'config.tracer']
+    tracer = None
+    if OPENCENSUS_ENABLED:
+
+        if attr is not None: # Get tracer from passed attribute
+            tracer = rgetattr(inst, attr, None)
+
+        if tracer is None: # Get tracer from standard attributes
+            for _ in default_attributes:
+                tracer = rgetattr(inst, _, None)
+
+        if tracer is None: # Get tracer from context
+            tracer = execution_context.get_opencensus_tracer()
+
+        # Set tracer if 'attr' was passed
+        if tracer is not None and attr is not None:
+            rsetattr(inst, attr, tracer)
+
+        # Log span context
+        LOGGER.info("%s: %s", inst.__name__, tracer.span_context)
+
+    return tracer
+
+def trace_decorator(func, attr=None):
+    """Method decorator to trace a class method.
 
     Args:
-        func (func): Class method to be traced
+        f (func): Class method to be traced.
+
     Returns:
-        wrapper: Decorated class method
+        wrapper: Decorated class method.
     """
 
     def wrapper(self, *args, **kwargs):
-        """ Wrapper method
+        """Wrapper method for method arguments.
 
         Args:
-            *args: Argument list passed to a function
-            **kwargs: Variable number of arguments dictionary passed
-                to a function
+            *args: Argument list passed to the function.
+            **kwargs: Arguments dictionary passed to the function.
+
         Returns:
-            func: Function
+            func: Decorated function.
         """
-        tracer = execution_context.get_opencensus_tracer()
-        LOGGER.debug('%s.%s: %s', func.__module__, func.__name__,
-                     tracer.span_context)
-        if hasattr(self, 'config'):
-            self.config.tracer = tracer
-        else:
-            self.tracer = tracer
-        return func(self, *args, **kwargs)
+        # Start span
+        if OPENCENSUS_ENABLED:
+            tracer = get_tracer(self, attr)
+            module_str = func.__module__.split('.')[-1]
+            start_span(tracer, module_str, func.__name__)
+
+        # Run function
+        result = func(self, *args, **kwargs)
+
+        # End span
+        if OPENCENSUS_ENABLED:
+            end_span(tracer, result=result)
+
     return wrapper
 
-def trace(_lambda=None, attr=None):
-    """Decorator to trace class methods.
+# def trace(attr=None):
+#     """Decorator to trace class methods.
+#
+#     This decorator expect the tracer is set in the class via an instance
+#     attribute, or is fetchable using a lambda function.
+#
+#     If nothing is passed to the decorator, it will use the execution context to
+#     get the tracer.
+#
+#     Args:
+#         attr (str): The attribute to fetch from the instance.
+#
+#     Returns:
+#         func: The decorated class method.
+#     """
+#     def decorator(func):
+#         """Method decorator
+#
+#         Args:
+#             func (func): Function to be decorated
+#         Returns:
+#             func: Decorated function
+#         """
+#         def wrapper(self, *args, **kwargs):
+#             """Wrapper class
+#
+#             Args:
+#                 *args: Argument list passed to a function
+#                 **kwargs: Variable number of arguments dictionary passed
+#                 to a function
+#             """
+#             # Start span
+#             if OPENCENSUS_ENABLED:
+#                 tracer = get_tracer(self, attr)
+#                 module_str = func.__module__.split('.')[-1]
+#                 start_span(tracer, module_str, func.__name__)
+#
+#             # Run function
+#             result = func(self, *args, **kwargs)
+#
+#             # End span
+#             if OPENCENSUS_ENABLED:
+#                 end_span(tracer, result=result)
+#
+#         return wrapper
+#     return decorator
 
-    This decorator expect the tracer is set in the class via an instance
-    attribute, or is fetchable using a lambda function.
+def rsetattr(obj, attr, val):
+    """Set nested attribute in object."""
+    pre, _, post = attr.rpartition('.')
+    return setattr(rgetattr(obj, pre) if pre else obj, post, val)
 
-    If nothing is passed to the decorator, it will use the execution context to
-    get the tracer.
-
-    Args:
-        _lambda (func): A lambda definition defining how to get the
-                                 tracer.
-        attr (str): The attribute to fetch from the instance.
-
-    Returns:
-        func: The decorated class method.
-    """
-    def decorator(func):
-        """Method decorator
-
-        Args:
-            func (func): Function to be decorated
-        Returns:
-            func: Decorated function
-        """
-        def wrapper(self, *args, **kwargs):
-            """Wrapper class
-
-            Args:
-                *args: Argument list passed to a function
-                **kwargs: Variable number of arguments dictionary passed
-                to a function
-            """
-            if OPENCENSUS_ENABLED:
-                if _lambda is not None:
-                    tracer = _lambda(self)
-                elif attr is not None:
-                    tracer = getattr(self, attr, None)
-                else: # no arg passed to decorator, getting tracer from context
-                    tracer = execution_context.get_opencensus_tracer()
-                module_str = func.__module__.split('.')[-1]
-                start_span(tracer, module_str, func.__name__)
-            result = func(self, *args, **kwargs)
-            if OPENCENSUS_ENABLED:
-                end_span(tracer, result=result)
-        return wrapper
-    return decorator
+def rgetattr(obj, attr, *args):
+    """Get nested attribute in object."""
+    def _getattr(obj, attr):
+        return getattr(obj, attr, *args)
+    return functools.reduce(_getattr, [obj] + attr.split('.'))

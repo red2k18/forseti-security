@@ -294,7 +294,7 @@ class Inventory(object):
             inventory_id (str): Id of the inventory.
 
         Returns:
-            object: Inventory metadata
+            object: Inventory metadata.
         """
 
         with self.config.scoped_session() as session:

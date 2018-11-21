@@ -76,6 +76,7 @@ class ParallelCrawlerConfig(crawler.CrawlerConfig):
         self.client = api_client
 
 
+@tracing.traced
 class Crawler(crawler.Crawler):
     """Simple single-threaded Crawler implementation."""
 
@@ -100,7 +101,6 @@ class Crawler(crawler.Crawler):
         resource.accept(self)
         return self.config.progresser
 
-    @tracing.trace(lambda x: x.config.tracer)
     def visit(self, resource):
         """Handle a newly found resource.
 
@@ -135,8 +135,8 @@ class Crawler(crawler.Crawler):
             raise
         else:
             progresser.on_new_object(resource)
-        #finally:
-            #tracing.end_span(self.config.tracer, **attrs)
+        finally:
+            tracing.end_span(self.config.tracer, **attrs)
 
     def dispatch(self, callback):
         """Dispatch crawling of a subtree.
@@ -176,7 +176,6 @@ class Crawler(crawler.Crawler):
         self.config.storage.warning(warning_message)
         self.config.progresser.on_warning(error)
 
-    @tracing.trace(lambda x: x.config.tracer)
     def update(self, resource):
         """Update the row of an existing resource
 
