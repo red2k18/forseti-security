@@ -14,6 +14,7 @@
 
 """Forseti OpenCensus gRPC tracing setup."""
 
+import functools
 import inspect
 from google.cloud.forseti.common.util import logger
 #from functools import wraps
