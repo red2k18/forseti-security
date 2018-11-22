@@ -168,10 +168,12 @@ def set_attributes(tracer, **kwargs):
         tracer (opencensus.trace.tracer.Tracer): OpenCensus tracer object.
         kwargs (dict): A set of attributes to set to the current span.
     """
-    if tracer is None:
-        return
     for key, value in kwargs.items():
-        tracer.add_attribute_to_current_span(key, value)
+        try:
+            tracer.add_attribute_to_current_span(key, value)
+        except Exception as e:
+            LOGGER.warning("Couldn't set attributes to current span.")
+            LOGGER.exception(e)
 
 def traced(cls):
     """Class decorator
