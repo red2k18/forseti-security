@@ -22,11 +22,11 @@ LOGGER = logger.get_logger(__name__)
 DEFAULT_INTEGRATIONS = ['requests', 'sqlalchemy']
 
 try:
+    from opencensus.common.transports import async_
     from opencensus.trace import config_integration
     from opencensus.trace import execution_context
     from opencensus.trace.exporters import file_exporter
     from opencensus.trace.exporters import stackdriver_exporter
-    from opencensus.trace.exporters.transports import background_thread
     from opencensus.trace.ext.grpc import client_interceptor
     from opencensus.trace.ext.grpc import server_interceptor
     from opencensus.trace.samplers import always_on
@@ -95,7 +95,7 @@ def trace_integrations(integrations=None):
         integrations,
         tracer)
     LOGGER.info('Tracing integration libraries: %s', integrated_libraries)
-    LOGGER.info(tracer.span_context)
+    LOGGER.debug(tracer.span_context)
     return integrated_libraries
 
 
@@ -114,7 +114,7 @@ def create_exporter(transport=None):
         FileExporter: A file exporter. Default path: 'opencensus-traces.json'.
     """
     if transport is None:
-        transport = background_thread.BackgroundThreadTransport
+        transport = async_.AsyncTransport
 
     try:
         exporter = stackdriver_exporter.StackdriverExporter(transport=transport)
