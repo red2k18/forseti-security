@@ -145,7 +145,7 @@ def start_span(tracer, module, function, kind=None):
         span.span_kind = kind
         tracer.add_attribute_to_current_span('module', module)
         tracer.add_attribute_to_current_span('function', function)
-        LOGGER.debug('%s.%s: SpanContext: %s', module, function, tracer.span_context)
+        LOGGER.info('%s.%s: SpanContext: %s', module, function, tracer.span_context)
 
 
 def end_span(tracer, **kwargs):
