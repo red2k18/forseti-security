@@ -206,11 +206,11 @@ def get_tracer(inst, attr=None):
 
         if tracer is None:  # Get tracer from context
             tracer = execution_context.get_opencensus_tracer()
-            LOGGER.info("%s: Getting tracer from OpenCensus context", inst)
+            LOGGER.info("%s: Getting tracer from OpenCensus context", inst.__class__.__name__)
             for _ in default_attributes:
                 try:
                     rsetattr(inst, _, tracer)
-                    LOGGER.info("Tracer set as attribute '%s.%s'", inst, _)
+                    LOGGER.info("Tracer set as attribute '%s.%s'", inst.__class__.__name__, _)
                     break
                 except Exception:
                     pass
