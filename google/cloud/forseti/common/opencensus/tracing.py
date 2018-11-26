@@ -193,7 +193,7 @@ def get_tracer(inst, attr=None):
     Returns:
         tracer(opencensus.trace.Tracer): The tracer to be used.
     """
-    default_attributes = ['tracer', 'config.tracer']
+    default_attributes = ['config.tracer', 'tracer']
     tracer = None
     if OPENCENSUS_ENABLED:
 
@@ -206,12 +206,15 @@ def get_tracer(inst, attr=None):
 
         if tracer is None:  # Get tracer from context
             tracer = execution_context.get_opencensus_tracer()
+            for _ in default_attributes:
+                try:
+                    rsetattr(inst, attr, tracer)
+                    LOGGER.info("Tracer set as attribute '%s.%s'", inst.__class__.__name__, attr)
+                    break
+                except Exception:
+                    pass
 
-        # Set tracer if 'attr' was passed
-        if tracer is not None and attr is not None:
-            rsetattr(inst, attr, tracer)
-
-        LOGGER.debug('%s: %s', inst, tracer.span_context)
+        LOGGER.info('%s: %s', inst, tracer.span_context)
 
     return tracer
 
@@ -254,10 +257,10 @@ def trace_decorator(func):
             tracer = get_tracer(self)
             LOGGER.debug('%s.%s: %s', func.__module__, func.__name__,
                          tracer.span_context)
-            if hasattr(self, 'config'):
-                self.config.tracer = tracer
-            else:
-                self.tracer = tracer
+            # if hasattr(self, 'config'):
+            #     self.config.tracer = tracer
+            # else:
+            #     self.tracer = tracer
         return func(self, *args, **kwargs)
     return wrapper
 
