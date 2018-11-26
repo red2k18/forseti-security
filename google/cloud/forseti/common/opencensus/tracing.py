@@ -209,7 +209,7 @@ def get_tracer(inst, attr=None):
             LOGGER.info("%s: Getting tracer from OpenCensus context", inst)
             for _ in default_attributes:
                 try:
-                    rsetattr(inst, attr, tracer)
+                    rsetattr(inst, _, tracer)
                     LOGGER.info("Tracer set as attribute '%s.%s'", inst, attr)
                     break
                 except Exception:
