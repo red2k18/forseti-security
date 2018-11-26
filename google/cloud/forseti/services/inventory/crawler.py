@@ -31,7 +31,7 @@ LOGGER = logger.get_logger(__name__)
 class CrawlerConfig(crawler.CrawlerConfig):
     """Crawler configuration to inject dependencies."""
 
-    def __init__(self, storage, progresser, api_client, variables=None):
+    def __init__(self, storage, progresser, api_client, variables=None, tracer=None):
         """Initialize
 
         Args:
@@ -47,13 +47,14 @@ class CrawlerConfig(crawler.CrawlerConfig):
         self.progresser = progresser
         self.variables = {} if not variables else variables
         self.client = api_client
+        self.tracer = tracer
 
 
 class ParallelCrawlerConfig(crawler.CrawlerConfig):
     """Multithreaded crawler configuration, to inject dependencies."""
 
     def __init__(self, storage, progresser, api_client, threads=10,
-                 variables=None):
+                 variables=None, tracer=None):
         """Initialize
 
         Args:
@@ -71,6 +72,7 @@ class ParallelCrawlerConfig(crawler.CrawlerConfig):
         self.variables = {} if not variables else variables
         self.threads = threads
         self.client = api_client
+        self.tracer = tracer
 
 
 @tracing.traced
@@ -299,7 +301,8 @@ class ParallelCrawler(Crawler):
 def run_crawler(storage,
                 progresser,
                 config,
-                parallel=True):
+                parallel=True,
+                tracer=None):
     """Run the crawler with a determined configuration.
 
     Args:
@@ -311,7 +314,6 @@ def run_crawler(storage,
     Returns:
         QueueProgresser: The progresser implemented in inventory
     """
-    tracer = tracing.get_tracer()
     tracing.start_span(tracer, 'inventory', 'run_crawler')
     client_config = config.get_api_quota_configs()
     client_config['domain_super_admin_email'] = config.get_gsuite_admin_email()
@@ -322,10 +324,11 @@ def run_crawler(storage,
     if parallel:
         crawler_config = ParallelCrawlerConfig(storage,
                                                progresser,
-                                               client)
+                                               client,
+                                               tracer=tracer)
         crawler_impl = ParallelCrawler(crawler_config)
     else:
-        crawler_config = CrawlerConfig(storage, progresser, client)
+        crawler_config = CrawlerConfig(storage, progresser, client, tracer=tracer)
         crawler_impl = Crawler(crawler_config)
     progresser = crawler_impl.run(resource)
     # flush the buffer at the end to make sure nothing is cached.
