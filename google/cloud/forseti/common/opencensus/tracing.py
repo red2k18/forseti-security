@@ -74,7 +74,7 @@ def create_server_interceptor(extras=True):
     interceptor = server_interceptor.OpenCensusServerInterceptor(
         sampler,
         exporter)
-    LOGGER.info(execution_context.get_opencensus_tracer().span_context)
+    LOGGER.debug(execution_context.get_opencensus_tracer().span_context)
     return interceptor
 
 
@@ -95,7 +95,7 @@ def trace_integrations(integrations=None):
         integrations,
         tracer)
     LOGGER.info('Tracing integration libraries: %s', integrated_libraries)
-    LOGGER.info(tracer.span_context)
+    LOGGER.debug(tracer.span_context)
     return integrated_libraries
 
 
