@@ -283,7 +283,7 @@ def trace(func):
         Returns:
             func: Decorated function.
         """
-        instance = args[0] if inspect.is_method(func) else None
+        instance = args[0] if inspect.ismethod(func) else None
         if OPENCENSUS_ENABLED:
             tracer = get_tracer(instance)
             module_str = func.__module__.split('.')[-1]
