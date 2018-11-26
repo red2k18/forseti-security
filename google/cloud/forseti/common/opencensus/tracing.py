@@ -286,6 +286,7 @@ def trace(func):
         instance = args[0] if inspect.ismethod(func) else None
         if OPENCENSUS_ENABLED:
             tracer = get_tracer(instance)
+            kwargs['tracer'] = tracer
             module_str = func.__module__.split('.')[-1]
             start_span(tracer, module_str, func.__name__)
         result = func(*args, **kwargs)
