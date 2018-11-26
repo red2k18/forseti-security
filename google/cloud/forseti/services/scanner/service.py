@@ -16,7 +16,6 @@
 
 from Queue import Queue
 
-from google.cloud.forseti.common.opencensus import tracing
 from google.cloud.forseti.common.util import logger
 from google.cloud.forseti.scanner import scanner
 from google.cloud.forseti.services.scanner.dao import initialize as init_storage
