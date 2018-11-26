@@ -216,7 +216,7 @@ def get_tracer(inst, attr=None):
         if tracer is not None:
             if attr is None:
                 attr = 'tracer'
-            LOGGER.info("Setting tracer in %s.%s" % inst.__class__.__name__, attr)
+            LOGGER.info("Setting tracer in %s.%s", inst.__class__.__name__, attr)
             rsetattr(inst, attr, tracer)
 
         LOGGER.debug('%s: %s', inst, tracer.span_context)
@@ -245,13 +245,14 @@ def traced(methods=None):
         # Get list of class methods
         cls_methods = inspect.getmembers(cls, inspect.ismethod)
 
-        # If `methods` is not passed, trace all class methods except `__init__`
-        if methods is None:
-            methods = [name for name, func in cls_methods if name != '__init__']
+        # Get list of class methods to trace
+        to_trace = methods
+        if to_trace is None:  # trace all class methods except __init__
+            to_trace = [n for n, f in cls_methods if name != '__init__']
 
         # Decorate selected class methods for tracing
         for name, func in cls_methods:
-            if name in methods:
+            if name in to_trace:
                 setattr(cls, name, trace()(func))
 
         return cls
