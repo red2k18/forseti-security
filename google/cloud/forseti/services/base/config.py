@@ -269,9 +269,7 @@ class ServiceConfig(AbstractServiceConfig):
 
     def init_tracer(self):
         """Fetch tracer from the interceptors and initialize it"""
-        if tracing.OPENCENSUS_ENABLED:
-            self.tracer = tracing.execution_context.get_opencensus_tracer()
-            LOGGER.info(self.tracer.span_context)
+        self.tracer = tracing.get_tracer(self)
 
     def _read_from_config(self, config_file_path=None):
         """Read from the forseti configuration file.

@@ -21,8 +21,6 @@ from google.cloud.forseti.services.inventory import inventory_pb2_grpc
 from google.cloud.forseti.services.inventory import inventory
 from google.cloud.forseti.services.utils import autoclose_stream
 
-from google.cloud.forseti.common.opencensus import tracing
-
 # pylint: disable=no-member
 
 
@@ -157,7 +155,6 @@ class GrpcInventory(inventory_pb2_grpc.InventoryServicer):
         return inventory_pb2.DeleteReply(
             inventory=inventory_pb_from_object(inventory_index))
 
-    @tracing.trace()
     def Purge(self, request, _):
         """Purge desired inventory data.
 

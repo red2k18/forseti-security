@@ -76,6 +76,7 @@ class ParallelCrawlerConfig(crawler.CrawlerConfig):
         self.client = api_client
 
 
+@tracing.traced(methods=['visit', 'update'])
 class Crawler(crawler.Crawler):
     """Simple single-threaded Crawler implementation."""
 
@@ -100,7 +101,6 @@ class Crawler(crawler.Crawler):
         resource.accept(self)
         return self.config.progresser
 
-    @tracing.trace()
     def visit(self, resource):
         """Handle a newly found resource.
 
@@ -176,7 +176,6 @@ class Crawler(crawler.Crawler):
         self.config.storage.warning(warning_message)
         self.config.progresser.on_warning(error)
 
-    @tracing.trace()
     def update(self, resource):
         """Update the row of an existing resource
 
