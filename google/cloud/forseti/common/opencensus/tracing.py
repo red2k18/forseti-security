@@ -253,7 +253,6 @@ def traced(methods=None):
             to_trace = cls_methods
         else:
             to_trace = [m for m in cls_methods if m[0] in methods]
-        LOGGER.info("%s - Tracing methods %s", cls.__name__, to_trace.split(','))
         for name, func in to_trace:
             if name != '__init__':  # never trace __init__, breaks attributes
                 setattr(cls, name, trace_decorator(func))
