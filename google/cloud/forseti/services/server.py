@@ -101,7 +101,7 @@ def serve(endpoint,
     server = grpc.server(
         futures.ThreadPoolExecutor(max_workers),
         interceptors=interceptors)
-        
+
     for factory in factories:
         factory(config).create_and_register_service(server)
 
