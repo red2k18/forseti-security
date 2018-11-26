@@ -28,7 +28,6 @@ from google.cloud.forseti.common.opencensus import tracing
 
 LOGGER = logger.get_logger(__name__)
 
-@tracing.traced
 class CrawlerConfig(crawler.CrawlerConfig):
     """Crawler configuration to inject dependencies."""
 
@@ -50,7 +49,6 @@ class CrawlerConfig(crawler.CrawlerConfig):
         self.client = api_client
 
 
-@tracing.traced
 class ParallelCrawlerConfig(crawler.CrawlerConfig):
     """Multithreaded crawler configuration, to inject dependencies."""
 
