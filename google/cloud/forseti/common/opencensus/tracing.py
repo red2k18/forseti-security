@@ -216,54 +216,50 @@ def get_tracer(inst, attr=None):
     return tracer
 
 
-def traced(attr=None):
-    def wrapper(cls):
-        """Class decorator.
+def traced(cls):
+    """Class decorator.
+
+    Args:
+        cls (object): Class to decorate.
+
+    Returns:
+        object: Decorated class.
+    """
+    for name, func in inspect.getmembers(cls, inspect.ismethod):
+        setattr(cls, name, trace_decorator(func))
+    return cls
+
+
+def trace_decorator(func):
+    """Method decorator to trace a class method.
+
+    Args:
+        func (func): Class method to be traced.
+
+    Returns:
+        wrapper: Decorated class method.
+    """
+
+    def wrapper(self, *args, **kwargs):
+        """Wrapper method.
 
         Args:
-            cls (object): Class to decorate.
+            *args: Argument list passed to the method.
+            **kwargs: Argument dict passed to the method.
 
         Returns:
-            object: Decorated class.
+            func: Function.
         """
-        for name, func in inspect.getmembers(cls, inspect.ismethod):
-            setattr(cls, name, trace_decorator(attr=attr)(func))
-        return cls
+        if OPENCENSUS_ENABLED:
+            tracer = get_tracer(self)
+            LOGGER.debug('%s.%s: %s', func.__module__, func.__name__,
+                         tracer.span_context)
+            if hasattr(self, 'config'):
+                self.config.tracer = tracer
+            else:
+                self.tracer = tracer
+        return func(self, *args, **kwargs)
     return wrapper
-
-
-def trace_decorator(attr=None):
-    def outer_wrapper(func):
-        """Method decorator to trace a class method.
-
-        Args:
-            func (func): Class method to be traced.
-
-        Returns:
-            wrapper: Decorated class method.
-        """
-
-        def inner_wrapper(self, *args, **kwargs):
-            """Wrapper method.
-
-            Args:
-                *args: Argument list passed to the method.
-                **kwargs: Argument dict passed to the method.
-
-            Returns:
-                func: Function.
-            """
-            if OPENCENSUS_ENABLED:
-                tracer = get_tracer(self)
-                LOGGER.debug('%s.%s: %s', func.__module__, func.__name__,
-                             tracer.span_context)
-                if hasattr(self, 'config'):
-                    self.config.tracer = tracer
-                else:
-                    self.tracer = tracer
-            return func(self, *args, **kwargs)
-        return inner_wrapper
-    return outer_wrapper
 
 
 def trace(attr=None):
