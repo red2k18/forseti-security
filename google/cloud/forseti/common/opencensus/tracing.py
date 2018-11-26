@@ -287,7 +287,7 @@ def trace(func):
         if OPENCENSUS_ENABLED:
             tracer = get_tracer(instance)
             if 'tracer' in kwargs:
-                kwargs['tracer'] = tracer
+                kwargs['tracer'] = kwargs.get('tracer', tracer)
             module_str = func.__module__.split('.')[-1]
             start_span(tracer, module_str, func.__name__)
         result = func(*args, **kwargs)
