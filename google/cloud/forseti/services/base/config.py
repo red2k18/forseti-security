@@ -22,7 +22,6 @@ import abc
 from multiprocessing.pool import ThreadPool
 import threading
 
-from google.cloud.forseti.common.opencensus import tracing
 from google.cloud.forseti.common.util import file_loader
 from google.cloud.forseti.common.util import logger
 from google.cloud.forseti.services import db

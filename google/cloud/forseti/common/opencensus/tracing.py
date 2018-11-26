@@ -234,13 +234,17 @@ def get_tracer(inst=None, attr=None):
 
 
 def traced(methods=None):
+    """Class decorator.
+
+    Args:
+        methods (list): If set, the decorator will trace those class methods.
+                        If unset, trace all class methods.
+
+    Returns:
+        object: Decorated class.
+    """
     def wrapper(cls):
-        """Class decorator.
-
-        Gets a list of all class methods.
-
-        If `methods` is not set, the decorator will trace all class methods.
-        If `methods` is set, the decorator will only trace those.
+        """Decorate selected class methods.
 
         Args:
             cls (object): Class to decorate.
@@ -255,11 +259,11 @@ def traced(methods=None):
             to_trace = [m for m in cls_methods if m[0] in methods]
         for name, func in to_trace:
             if name != '__init__':  # never trace __init__, breaks attributes
-                setattr(cls, name, trace_decorator(func))
+                setattr(cls, name, trace(func))
         return cls
     return wrapper
 
-def trace_decorator(func):
+def trace(func):
     """Method decorator to trace a class method.
 
     Args:
@@ -268,7 +272,6 @@ def trace_decorator(func):
     Returns:
         wrapper: Decorated class method.
     """
-
     def wrapper(self, *args, **kwargs):
         """Wrapper method.
 
@@ -288,47 +291,6 @@ def trace_decorator(func):
             end_span(tracer, result=result)
         return result
     return wrapper
-
-
-def trace(attr=None):
-    """Decorator to trace class methods.
-
-    Args:
-        attr (str): The attribute to fetch from the instance.
-
-    Returns:
-        func: The decorated class method.
-    """
-    def decorator(func):
-        """Method decorator.
-
-        Args:
-            func (func): Function to be decorated.
-
-        Returns:
-            func: Decorated function.
-        """
-        def wrapper(self, *args, **kwargs):
-            """Method wrapper.
-
-            Args:
-                *args: Argument list passed to the function.
-                **kwargs: Argument dictionary passed to the function.
-
-            Returns:
-                object: Function's return value.
-            """
-            if OPENCENSUS_ENABLED:
-                tracer = get_tracer(self, attr)
-                module_str = func.__module__.split('.')[-1]
-                start_span(tracer, module_str, func.__name__)
-            result = func(self, *args, **kwargs)
-            if OPENCENSUS_ENABLED:
-                end_span(tracer, result=result)
-            return result
-        return wrapper
-    return decorator
-
 
 def rsetattr(obj, attr, val):
     """Set nested attribute in object.
