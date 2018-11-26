@@ -177,7 +177,7 @@ def set_attributes(tracer, **kwargs):
                          key, value)
 
 
-def get_tracer(inst, attr=None):
+def get_tracer(inst=None, attr=None):
     """Get a tracer from the current context.
 
     This function can get a tracer from any instance attribute if `attr` is
@@ -197,21 +197,23 @@ def get_tracer(inst, attr=None):
     tracer = None
     if OPENCENSUS_ENABLED:
 
-        if attr is not None:  # Get tracer from passed attribute
-            tracer = rgetattr(inst, attr, None)
+        if inst is not None:  # working with an object
+            if attr is not None:  # Get tracer from passed attribute
+                tracer = rgetattr(inst, attr, None)
 
-        if tracer is None:  # Get tracer from standard attributes
-            for _ in default_attributes:
-                tracer = rgetattr(inst, _, None)
+            if tracer is None:  # Get tracer from standard attributes
+                for _ in default_attributes:
+                    tracer = rgetattr(inst, _, None)
 
         if tracer is None:  # Get tracer from context
             tracer = execution_context.get_opencensus_tracer()
-            for _ in default_attributes:
-                try:
-                    rsetattr(inst, _, tracer)
-                    break
-                except Exception:
-                    pass
+            if inst is not None:
+                for _ in default_attributes:
+                    try:
+                        rsetattr(inst, _, tracer)
+                        break
+                    except Exception:
+                        pass
 
         LOGGER.info('%s: %s', inst, tracer.span_context)
 
