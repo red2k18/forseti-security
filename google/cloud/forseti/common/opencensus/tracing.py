@@ -193,22 +193,30 @@ def get_tracer(inst, attr=None):
     Returns:
         tracer(opencensus.trace.Tracer): The tracer to be used.
     """
-    default_attributes = ['tracer', 'config.tracer']
+    default_attributes = ['tracer', 'config.tracer', 'service_config.tracer']
     tracer = None
     if OPENCENSUS_ENABLED:
 
         if attr is not None:  # Get tracer from passed attribute
+            LOGGER.info("Getting tracer from %s.%s", inst.__class__.__name__, _)
             tracer = rgetattr(inst, attr, None)
 
         if tracer is None:  # Get tracer from standard attributes
             for _ in default_attributes:
                 tracer = rgetattr(inst, _, None)
+                if tracer is not None:
+                    LOGGER.info("Found tracer in %s.%s", inst.__class__.__name__, _)
+                    break
 
         if tracer is None:  # Get tracer from context
+            LOGGER.info("Getting tracer from OpenCensus context for %s.%s" % inst.__class__.__name__, _)
             tracer = execution_context.get_opencensus_tracer()
 
-        # Set tracer if 'attr' was passed
-        if tracer is not None and attr is not None:
+        # Set tracer
+        if tracer is not None:
+            if attr is None:
+                attr = 'tracer'
+            LOGGER.info("Setting tracer in %s.%s" % inst.__class__.__name__, attr)
             rsetattr(inst, attr, tracer)
 
         LOGGER.debug('%s: %s', inst, tracer.span_context)
@@ -216,49 +224,37 @@ def get_tracer(inst, attr=None):
     return tracer
 
 
-def traced(cls):
+def traced(methods=None):
     """Class decorator.
 
     Args:
-        cls (object): Class to decorate.
+        methods (list): A list of class methods to decorate.
 
     Returns:
-        object: Decorated class.
+        object: The decorated class.
     """
-    for name, func in inspect.getmembers(cls, inspect.ismethod):
-        setattr(cls, name, trace_decorator(func))
-    return cls
-
-
-def trace_decorator(func):
-    """Method decorator to trace a class method.
-
-    Args:
-        func (func): Class method to be traced.
-
-    Returns:
-        wrapper: Decorated class method.
-    """
-
-    def wrapper(self, *args, **kwargs):
-        """Wrapper method.
+    def wrapper(cls):
+        """Wrapper.
 
         Args:
-            *args: Argument list passed to the method.
-            **kwargs: Argument dict passed to the method.
+            cls (object): Class to decorate.
 
         Returns:
-            func: Function.
+            object: Decorated class.
         """
-        if OPENCENSUS_ENABLED:
-            tracer = execution_context.get_opencensus_tracer()
-            LOGGER.debug('%s.%s: %s', func.__module__, func.__name__,
-                         tracer.span_context)
-            if hasattr(self, 'config'):
-                self.config.tracer = tracer
-            else:
-                self.tracer = tracer
-        return func(self, *args, **kwargs)
+        # Get list of class methods
+        cls_methods = inspect.getmembers(cls, inspect.ismethod)
+
+        # If `methods` is not passed, trace all class methods except `__init__`
+        if methods is None:
+            methods = [name for name, func in cls_methods if name != '__init__']
+
+        # Decorate selected class methods for tracing
+        for name, func in cls_methods:
+            if name in methods:
+                setattr(cls, name, trace()(func))
+
+        return cls
     return wrapper
 
 
@@ -316,6 +312,7 @@ def rsetattr(obj, attr, val):
 
     pre, _, post = attr.rpartition('.')
     return setattr(rgetattr(obj, pre) if pre else obj, post, val)
+
 
 def rgetattr(obj, attr, *args):
     """Get nested attribute in object.
