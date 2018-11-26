@@ -265,15 +265,15 @@ def traced(methods=None):
 
 
 def trace(func):
-    """Method decorator to trace a class method.
+    """Method decorator to trace a function.
 
     Args:
-        func (func): Class method to be traced.
+        func (func): Function to be traced.
 
     Returns:
-        wrapper: Decorated class method.
+        func: Decorated function.
     """
-    def wrapper(self, *args, **kwargs):
+    def wrapper(*args, **kwargs):
         """Wrapper method.
 
         Args:
@@ -281,13 +281,14 @@ def trace(func):
             **kwargs: Argument dict passed to the method.
 
         Returns:
-            func: Function.
+            func: Decorated function.
         """
+        instance = args[0] if inspect.is_method(func) else None
         if OPENCENSUS_ENABLED:
-            tracer = get_tracer(self)
+            tracer = get_tracer(instance)
             module_str = func.__module__.split('.')[-1]
             start_span(tracer, module_str, func.__name__)
-        result = func(self, *args, **kwargs)
+        result = func(*args, **kwargs)
         if OPENCENSUS_ENABLED:
             end_span(tracer, result=result)
         return result
