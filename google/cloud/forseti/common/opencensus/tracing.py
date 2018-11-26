@@ -220,7 +220,7 @@ def get_tracer(inst, attr=None):
             LOGGER.info("Setting tracer in %s.%s", inst.__class__.__name__, attr)
             rsetattr(inst, attr, tracer)
 
-        LOGGER.debug('%s: %s', inst, tracer.span_context)
+        LOGGER.info('%s: %s', inst, tracer.span_context)
 
     return tracer
 
