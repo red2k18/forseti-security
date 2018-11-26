@@ -248,7 +248,7 @@ def traced(methods=None):
         # Get list of class methods to trace
         to_trace = methods
         if to_trace is None:  # trace all class methods except __init__
-            to_trace = [n for n, f in cls_methods if name != '__init__']
+            to_trace = [n for n, _ in cls_methods if n != '__init__']
 
         # Decorate selected class methods for tracing
         for name, func in cls_methods:
