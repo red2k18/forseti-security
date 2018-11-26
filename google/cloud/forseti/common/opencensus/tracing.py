@@ -200,10 +200,14 @@ def get_tracer(inst=None, attr=None):
         if inst is not None:  # working with an object
             if attr is not None:  # Get tracer from passed attribute
                 tracer = rgetattr(inst, attr, None)
+                method = 'from attribute (%s)' % attr
 
             if tracer is None:  # Get tracer from standard attributes
                 for _ in default_attributes:
                     tracer = rgetattr(inst, _, None)
+                    if tracer is not None:
+                        method = 'from default_attribute (%s)' % _
+                        break
 
         if tracer is None:  # Get tracer from context
             tracer = execution_context.get_opencensus_tracer()
@@ -211,11 +215,12 @@ def get_tracer(inst=None, attr=None):
                 for _ in default_attributes:
                     try:
                         rsetattr(inst, _, tracer)
+                        method += ' + set to attribute %s' % _
                         break
                     except Exception:
                         pass
 
-        LOGGER.info('%s: %s', inst, tracer.span_context)
+        LOGGER.info('%s [%s] : %s', inst, method, tracer.span_context)
 
     return tracer
 
