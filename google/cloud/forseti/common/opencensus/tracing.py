@@ -206,6 +206,7 @@ def get_tracer(inst, attr=None):
                 tracer = rgetattr(inst, _, None)
                 if tracer is not None:
                     LOGGER.info("Found tracer in %s.%s", inst.__class__.__name__, _)
+                    attr = _
                     break
 
         if tracer is None:  # Get tracer from context
