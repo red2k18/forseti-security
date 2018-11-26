@@ -264,14 +264,15 @@ class ServiceConfig(AbstractServiceConfig):
         self.notifier_config = None
         self.global_config = None
         self.forseti_config = None
-        self.tracer = None
+        # self.tracer = None
         self.update_lock = threading.RLock()
 
     def init_tracer(self):
         """Fetch tracer from the interceptors and initialize it"""
-        if tracing.OPENCENSUS_ENABLED:
-            self.tracer = tracing.execution_context.get_opencensus_tracer()
-            LOGGER.info(self.tracer.span_context)
+        pass
+        # if tracing.OPENCENSUS_ENABLED:
+            # self.tracer = tracing.execution_context.get_opencensus_tracer()
+            # LOGGER.info(self.tracer.span_context)
 
     def _read_from_config(self, config_file_path=None):
         """Read from the forseti configuration file.
