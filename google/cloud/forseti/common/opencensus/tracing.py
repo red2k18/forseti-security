@@ -198,22 +198,22 @@ def get_tracer(inst, attr=None):
     if OPENCENSUS_ENABLED:
 
         if attr is not None:  # Get tracer from passed attribute
-            LOGGER.info("Getting tracer from %s.%s", inst.__class__.__name__, attr)
+            LOGGER.debug("Getting tracer from %s.%s", inst.__class__.__name__, attr)
             tracer = rgetattr(inst, attr, None)
 
         if tracer is None:  # Get tracer from standard attributes
             for _ in default_attributes:
                 tracer = rgetattr(inst, _, None)
                 if tracer is not None:
-                    LOGGER.info("Found tracer in %s.%s", inst.__class__.__name__, _)
+                    LOGGER.debug("Getting tracer from %s.%s", inst.__class__.__name__, _)
                     break
 
         if tracer is None:  # Get tracer from context
-            LOGGER.info("Getting tracer from OpenCensus context for %s", inst.__class__.__name__)
+            LOGGER.debug("Getting tracer from OpenCensus context for %s", inst.__class__.__name__)
             tracer = execution_context.get_opencensus_tracer()
             if attr is None:
                 attr = 'tracer'
-            LOGGER.info("Setting tracer in %s.%s", inst.__class__.__name__, attr)
+            LOGGER.debug("Setting tracer in %s.%s", inst.__class__.__name__, attr)
             rsetattr(inst, attr, tracer)
 
         LOGGER.info('%s: %s', inst, tracer.span_context)
