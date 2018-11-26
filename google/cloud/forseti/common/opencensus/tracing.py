@@ -74,7 +74,7 @@ def create_server_interceptor(extras=True):
     interceptor = server_interceptor.OpenCensusServerInterceptor(
         sampler,
         exporter)
-    LOGGER.info(execution_context.get_opencensus_tracer().span_context)
+    LOGGER.info("TRACE: %s" % execution_context.get_opencensus_tracer().span_context)
     return interceptor
 
 
@@ -94,8 +94,8 @@ def trace_integrations(integrations=None):
     integrated_libraries = config_integration.trace_integrations(
         integrations,
         tracer)
-    LOGGER.info('Tracing integration libraries: %s', integrated_libraries)
-    LOGGER.info(tracer.span_context)
+    LOGGER.info('TRACE - Integration libraries: %s', integrated_libraries)
+    LOGGER.info('TRACE: %s' % tracer.span_context)
     return integrated_libraries
 
 
@@ -145,7 +145,7 @@ def start_span(tracer, module, function, kind=None):
         span.span_kind = kind
         tracer.add_attribute_to_current_span('module', module)
         tracer.add_attribute_to_current_span('function', function)
-        LOGGER.info('%s.%s: SpanContext: %s', module, function, tracer.span_context)
+        LOGGER.info('TRACE - %s.%s: %s', module, function, tracer.span_context)
 
 
 def end_span(tracer, **kwargs):
@@ -156,7 +156,7 @@ def end_span(tracer, **kwargs):
         kwargs (dict): A set of attributes to set to the current span.
     """
     if tracer is not None:
-        LOGGER.info("SpanContext: %s", tracer.span_context)
+        LOGGER.info("TRACE - %s", tracer.span_context)
         set_attributes(tracer, **kwargs)
         tracer.end_span()
 
@@ -216,7 +216,7 @@ def get_tracer(inst, attr=None):
             LOGGER.debug("Setting tracer in %s.%s", inst.__class__.__name__, attr)
             rsetattr(inst, attr, tracer)
 
-        LOGGER.info('%s: %s', inst, tracer.span_context)
+        LOGGER.info('TRACE - %s: %s', inst, tracer.span_context)
 
     return tracer
 
@@ -246,6 +246,7 @@ def traced(methods=None):
         to_trace = methods
         if to_trace is None:  # trace all class methods except __init__
             to_trace = [n for n, _ in cls_methods if n != '__init__']
+            LOGGER.info("TRACE - %s: %s", cls.__name__, to_trace)
 
         # Decorate selected class methods for tracing
         for name, func in cls_methods:

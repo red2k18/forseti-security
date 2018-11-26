@@ -136,7 +136,7 @@ class Crawler(crawler.Crawler):
         else:
             progresser.on_new_object(resource)
         finally:
-            tracing.end_span(self.config.tracer, **attrs)
+            tracing.set_attributes(self.config.tracer, **attrs)
 
     def dispatch(self, callback):
         """Dispatch crawling of a subtree.
