@@ -210,7 +210,7 @@ def get_tracer(inst, attr=None):
             for _ in default_attributes:
                 try:
                     rsetattr(inst, _, tracer)
-                    LOGGER.info("Tracer set as attribute '%s.%s'", inst, attr)
+                    LOGGER.info("Tracer set as attribute '%s.%s'", inst, _)
                     break
                 except Exception:
                     pass
