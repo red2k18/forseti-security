@@ -200,7 +200,7 @@ def get_tracer(inst=None, attr=None):
     Returns:
         tracer(opencensus.trace.Tracer): The tracer to be used.
     """
-    default_attributes = ['config.tracer', 'tracer']
+    default_attributes = ['config.tracer', 'service_config.tracer', 'tracer']
     tracer = None
     method = ''
     if OPENCENSUS_ENABLED:

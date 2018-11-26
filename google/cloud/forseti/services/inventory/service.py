@@ -112,7 +112,7 @@ class GrpcInventory(inventory_pb2_grpc.InventoryServicer):
                 last_warning=last_warning,
                 last_error=last_error)
 
-    # @autoclose_stream
+    @autoclose_stream
     def List(self, request, _):
         """Lists existing inventory.
 
@@ -157,7 +157,6 @@ class GrpcInventory(inventory_pb2_grpc.InventoryServicer):
         return inventory_pb2.DeleteReply(
             inventory=inventory_pb_from_object(inventory_index))
 
-    @tracing.trace()
     def Purge(self, request, _):
         """Purge desired inventory data.
 
