@@ -22,7 +22,7 @@ LOGGER = logger.get_logger(__name__)
 DEFAULT_INTEGRATIONS = ['requests', 'sqlalchemy']
 
 try:
-    from opencensus.common.transports import async
+    from opencensus.common.transports import async as async_
     from opencensus.trace import config_integration
     from opencensus.trace import execution_context
     from opencensus.trace.exporters import file_exporter
@@ -114,7 +114,7 @@ def create_exporter(transport=None):
         FileExporter: A file exporter. Default path: 'opencensus-traces.json'.
     """
     if transport is None:
-        transport = async.AsyncTransport
+        transport = async_.AsyncTransport
 
     try:
         exporter = stackdriver_exporter.StackdriverExporter(transport=transport)
@@ -263,6 +263,7 @@ def traced(methods=None):
         return cls
     return wrapper
 
+
 def trace(func):
     """Method decorator to trace a class method.
 
@@ -292,6 +293,7 @@ def trace(func):
         return result
     return wrapper
 
+
 def rsetattr(obj, attr, val):
     """Set nested attribute in object.
 
@@ -306,6 +308,7 @@ def rsetattr(obj, attr, val):
 
     pre, _, post = attr.rpartition('.')
     return setattr(rgetattr(obj, pre) if pre else obj, post, val)
+
 
 def rgetattr(obj, attr, *args):
     """Get nested attribute in object.
