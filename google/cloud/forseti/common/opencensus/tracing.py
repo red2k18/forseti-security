@@ -233,20 +233,32 @@ def get_tracer(inst=None, attr=None):
     return tracer
 
 
-def traced(cls):
-    """Class decorator.
+def traced(methods=None):
+    def wrapper(cls):
+        """Class decorator.
 
-    Args:
-        cls (object): Class to decorate.
+        Gets a list of all class methods.
 
-    Returns:
-        object: Decorated class.
-    """
-    for name, func in inspect.getmembers(cls, inspect.ismethod):
-        if name != '__init__':
-            setattr(cls, name, trace_decorator(func))
-    return cls
+        If `methods` is not set, the decorator will trace all class methods.
+        If `methods` is set, the decorator will only trace those.
 
+        Args:
+            cls (object): Class to decorate.
+
+        Returns:
+            object: Decorated class.
+        """
+        cls_methods = inspect.getmembers(cls, inspect.ismethod)
+        if methods is None:
+            to_trace = cls_methods
+        else:
+            to_trace = [m for m in cls_methods if m[0] in methods]
+        LOGGER.info("%s - Tracing methods %s", cls.__name__, to_trace.split(','))
+        for name, func in to_trace:
+            if name != '__init__':  # never trace __init__, breaks attributes
+                setattr(cls, name, trace_decorator(func))
+        return cls
+    return wrapper
 
 def trace_decorator(func):
     """Method decorator to trace a class method.
