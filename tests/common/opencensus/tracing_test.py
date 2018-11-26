@@ -63,7 +63,7 @@ class TracingTest(ForsetiTestCase):
         transport_cls = e.transport.__class__.__name__
         self.assertTrue(mock_stackdriver_exporter.called)
         self.assertEqual(exporter_cls, "StackdriverExporter")
-        self.assertEqual(transport_cls, "BackgroundThreadTransport")
+        self.assertEqual(transport_cls, "AsyncTransport")
 
     @mock.patch(
         'opencensus.trace.exporters.stackdriver_exporter.StackdriverExporter',
