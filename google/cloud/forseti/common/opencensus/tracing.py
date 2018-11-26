@@ -156,7 +156,7 @@ def end_span(tracer, **kwargs):
         kwargs (dict): A set of attributes to set to the current span.
     """
     if tracer is not None:
-        LOGGER.debug(tracer.span_context)
+        LOGGER.info(tracer.span_context)
         set_attributes(tracer, **kwargs)
         tracer.end_span()
 
