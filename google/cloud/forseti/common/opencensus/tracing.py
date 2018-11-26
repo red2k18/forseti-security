@@ -212,7 +212,8 @@ def get_tracer(inst, attr=None):
                     rsetattr(inst, _, tracer)
                     LOGGER.info("Tracer set as attribute '%s.%s'", inst.__class__.__name__, _)
                     break
-                except Exception:
+                except Exception as e:
+                    LOGGER.info("Can't set attribute '%s.%s'", inst.__class__.__name__, _)
                     pass
 
         LOGGER.info('%s: %s', inst, tracer.span_context)
