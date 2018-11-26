@@ -195,6 +195,7 @@ def get_tracer(inst=None, attr=None):
     """
     default_attributes = ['config.tracer', 'tracer']
     tracer = None
+    method = ''
     if OPENCENSUS_ENABLED:
 
         if inst is not None:  # working with an object
