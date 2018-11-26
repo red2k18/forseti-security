@@ -214,7 +214,6 @@ def get_tracer(inst, attr=None):
                     break
                 except Exception as e:
                     LOGGER.info("Can't set attribute '%s.%s': %s", inst.__class__.__name__, _, e)
-                    pass
 
         LOGGER.info('%s: %s', inst, tracer.span_context)
 

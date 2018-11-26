@@ -28,11 +28,11 @@ from google.cloud.forseti.common.opencensus import tracing
 
 LOGGER = logger.get_logger(__name__)
 
-
+@tracing.traced
 class CrawlerConfig(crawler.CrawlerConfig):
     """Crawler configuration to inject dependencies."""
 
-    def __init__(self, storage, progresser, api_client, tracer, variables=None):
+    def __init__(self, storage, progresser, api_client, variables=None):
         """Initialize
 
         Args:
@@ -46,15 +46,15 @@ class CrawlerConfig(crawler.CrawlerConfig):
         super(CrawlerConfig, self).__init__()
         self.storage = storage
         self.progresser = progresser
-        self.tracer = tracer
         self.variables = {} if not variables else variables
         self.client = api_client
 
 
+@tracing.traced
 class ParallelCrawlerConfig(crawler.CrawlerConfig):
     """Multithreaded crawler configuration, to inject dependencies."""
 
-    def __init__(self, storage, progresser, api_client, tracer, threads=10,
+    def __init__(self, storage, progresser, api_client, threads=10,
                  variables=None):
         """Initialize
 
@@ -70,12 +70,12 @@ class ParallelCrawlerConfig(crawler.CrawlerConfig):
         super(ParallelCrawlerConfig, self).__init__()
         self.storage = storage
         self.progresser = progresser
-        self.tracer = tracer
         self.variables = {} if not variables else variables
         self.threads = threads
         self.client = api_client
 
 
+@tracing.traced
 class Crawler(crawler.Crawler):
     """Simple single-threaded Crawler implementation."""
 
@@ -100,7 +100,7 @@ class Crawler(crawler.Crawler):
         resource.accept(self)
         return self.config.progresser
 
-    @tracing.trace()
+    # @tracing.trace()
     def visit(self, resource):
         """Handle a newly found resource.
 
@@ -176,7 +176,7 @@ class Crawler(crawler.Crawler):
         self.config.storage.warning(warning_message)
         self.config.progresser.on_warning(error)
 
-    @tracing.trace()
+    # @tracing.trace()
     def update(self, resource):
         """Update the row of an existing resource
 
@@ -324,11 +324,10 @@ def run_crawler(storage,
     if parallel:
         crawler_config = ParallelCrawlerConfig(storage,
                                                progresser,
-                                               client,
-                                               tracer)
+                                               client)
         crawler_impl = ParallelCrawler(crawler_config)
     else:
-        crawler_config = CrawlerConfig(storage, progresser, client, tracer)
+        crawler_config = CrawlerConfig(storage, progresser, client)
         crawler_impl = Crawler(crawler_config)
     progresser = crawler_impl.run(resource)
     # flush the buffer at the end to make sure nothing is cached.
