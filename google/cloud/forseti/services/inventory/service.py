@@ -16,6 +16,7 @@
 
 import google.protobuf.timestamp_pb2 as timestamp
 
+from google.cloud.forseti.common.opencensus import tracing
 from google.cloud.forseti.services.inventory import inventory_pb2
 from google.cloud.forseti.services.inventory import inventory_pb2_grpc
 from google.cloud.forseti.services.inventory import inventory
