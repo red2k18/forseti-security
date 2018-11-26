@@ -16,7 +16,6 @@
 
 import google.protobuf.timestamp_pb2 as timestamp
 
-from google.cloud.forseti.common.opencensus import tracing
 from google.cloud.forseti.services.inventory import inventory_pb2
 from google.cloud.forseti.services.inventory import inventory_pb2_grpc
 from google.cloud.forseti.services.inventory import inventory
@@ -55,7 +54,6 @@ def inventory_pb_from_object(inventory_index):
         errors=inventory_index.inventory_index_errors)
 
 
-@tracing.traced()
 class GrpcInventory(inventory_pb2_grpc.InventoryServicer):
     """Inventory gRPC handler."""
 
