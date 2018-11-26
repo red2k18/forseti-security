@@ -198,7 +198,7 @@ def get_tracer(inst, attr=None):
     if OPENCENSUS_ENABLED:
 
         if attr is not None:  # Get tracer from passed attribute
-            LOGGER.info("Getting tracer from %s.%s", inst.__class__.__name__, _)
+            LOGGER.info("Getting tracer from %s.%s", inst.__class__.__name__, attr)
             tracer = rgetattr(inst, attr, None)
 
         if tracer is None:  # Get tracer from standard attributes
