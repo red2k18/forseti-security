@@ -51,7 +51,6 @@ class GrpcNotifier(notifier_pb2_grpc.NotifierServicer):
         Args:
             notifier_api (Notifier): Notifier api implementation.
             service_config (ServiceConfig): Forseti 2.0 service configs.
-            tracer (opencensus.trace.tracer.Tracer): OpenCensus tracer object
         """
         super(GrpcNotifier, self).__init__()
         self.notifier = notifier_api

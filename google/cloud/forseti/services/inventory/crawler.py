@@ -28,10 +28,12 @@ from google.cloud.forseti.common.opencensus import tracing
 
 LOGGER = logger.get_logger(__name__)
 
+
 class CrawlerConfig(crawler.CrawlerConfig):
     """Crawler configuration to inject dependencies."""
 
-    def __init__(self, storage, progresser, api_client, variables=None, tracer=None):
+    def __init__(self, storage, progresser, api_client, variables=None,
+                 tracer=None):
         """Initialize
 
         Args:
@@ -327,7 +329,10 @@ def run_crawler(storage,
                                                tracer=tracer)
         crawler_impl = ParallelCrawler(crawler_config)
     else:
-        crawler_config = CrawlerConfig(storage, progresser, client, tracer=tracer)
+        crawler_config = CrawlerConfig(storage,
+                                       progresser,
+                                       client,
+                                       tracer=tracer)
         crawler_impl = Crawler(crawler_config)
     progresser = crawler_impl.run(resource)
     # flush the buffer at the end to make sure nothing is cached.
