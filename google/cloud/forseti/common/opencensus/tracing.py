@@ -231,7 +231,8 @@ def traced(cls):
         object: Decorated class.
     """
     for name, func in inspect.getmembers(cls, inspect.ismethod):
-        setattr(cls, name, trace_decorator(func))
+        if name != '__init__':
+            setattr(cls, name, trace_decorator(func))
     return cls
 
 
