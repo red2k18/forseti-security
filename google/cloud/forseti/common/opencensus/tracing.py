@@ -210,7 +210,7 @@ def get_tracer(inst, attr=None):
                 try:
                     rsetattr(inst, _, tracer)
                     break
-                except Exception as e:
+                except Exception:
                     pass
 
         LOGGER.info('%s: %s', inst, tracer.span_context)
