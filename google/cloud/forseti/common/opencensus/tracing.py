@@ -180,11 +180,18 @@ def set_attributes(tracer, **kwargs):
 def get_tracer(inst=None, attr=None):
     """Get a tracer from the current context.
 
-    This function can get a tracer from any instance attribute if `attr` is
-    passed.
+    This function will get a tracer using different methods with the following
+    logic.
 
-    Otherwise, it will look for a tracer in the `default_attributes` before
-    falling back on the OpenCensus execution context tracer.
+    If `inst` is passed (an instance of a class), the tracer will be fetched
+    in the following order of preference:
+
+    * from the instance attribute defined by `attr` (if passed).
+    * from a list of default attributes (see `default_attribute` variable).
+    * from OpenCensus context.
+
+    If `inst` is not passed, we simply get the tracer from the OpenCensus
+    context.
 
     Args:
         inst (Object): An instance of a class.
