@@ -209,7 +209,7 @@ def get_tracer(inst, attr=None):
                     break
 
         if tracer is None:  # Get tracer from context
-            LOGGER.info("Getting tracer from OpenCensus context for %s.%s" % inst.__class__.__name__, _)
+            LOGGER.info("Getting tracer from OpenCensus context for %s", inst.__class__.__name__)
             tracer = execution_context.get_opencensus_tracer()
 
         # Set tracer
