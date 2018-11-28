@@ -294,6 +294,7 @@ def trace(func):
     Returns:
         func: Decorated function.
     """
+    @functools.wraps(func)
     def wrapper(*args, **kwargs):
         """Wrapper method.
 
