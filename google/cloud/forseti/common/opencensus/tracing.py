@@ -336,7 +336,7 @@ def trace(func):
             result = func(*args, **kwargs)
             if inspect.isgeneratorfunction(func):
                 for r in result:
-                    yield result
+                    yield r
             else:
                 return result
         except Exception as e:
