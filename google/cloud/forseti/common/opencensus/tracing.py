@@ -294,6 +294,13 @@ def trace(func):
     Returns:
         func: Decorated function.
     """
+    def yield_f(result):
+        for r in result:
+            yield r
+
+    def return_f(result):
+        return result
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         """Wrapper method.
@@ -334,7 +341,11 @@ def trace(func):
         # The 'finally' block makes sure we always call `end_span` no matter if
         # an exception happened or not.
         try:
-            return func(*args, **kwargs)
+            result = func(*args, **kwargs)
+            if inspect.isgeneratorfunction(func):
+                return yield_f(result)
+            else:
+                return return_f(result)
         except Exception as e:
             if OPENCENSUS_ENABLED:
                 error_str = "{}:{}".format(type(e).__name__, str(e))
