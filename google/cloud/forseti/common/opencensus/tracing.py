@@ -338,6 +338,7 @@ def trace(func):
             if inspect.isgeneratorfunction(func):
                 for r in result:
                     yield r
+                return
             else:
                 return result
         except Exception as e:
