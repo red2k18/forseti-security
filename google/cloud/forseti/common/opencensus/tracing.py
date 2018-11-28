@@ -333,7 +333,12 @@ def trace(func):
         # The 'finally' block makes sure we always call `end_span` no matter if
         # an exception happened or not.
         try:
-            return func(*args, **kwargs)
+            result = func(*args, **kwargs)
+            if inspect.isgeneratorfunction(func):
+                for r in result:
+                    yield result
+            else:
+                return result
         except Exception as e:
             if OPENCENSUS_ENABLED:
                 error_str = "{}:{}".format(type(e).__name__, str(e))
