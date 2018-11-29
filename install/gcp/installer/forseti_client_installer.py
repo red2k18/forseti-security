@@ -15,9 +15,8 @@
 """Forseti CLI installer."""
 
 from forseti_installer import ForsetiInstaller
-from util import constants
-from util import gcloud
 
+from util import gcloud
 
 class ForsetiClientInstaller(ForsetiInstaller):
     """Forseti command line interface installer"""
@@ -62,8 +61,6 @@ class ForsetiClientInstaller(ForsetiInstaller):
                 self.config.identifier)
             zone = '{}-c'.format(self.config.bucket_location)
             gcloud.enable_os_login(instance_name, zone)
-            # Create firewall rules.
-            self.create_firewall_rules()
             self.wait_until_vm_initialized(instance_name)
         return success, deployment_name
 
@@ -97,30 +94,3 @@ class ForsetiClientInstaller(ForsetiInstaller):
             'VPC_HOST_NETWORK': self.config.vpc_host_network,
             'VPC_HOST_SUBNETWORK': self.config.vpc_host_subnetwork
         }
-
-    def create_firewall_rules(self):
-        """Create firewall rules for Forseti server instance."""
-        # Create firewall rule to open only port tcp:22 (ssh)
-        # to all the external traffic from the internet to ssh into client VM.
-        gcloud.create_firewall_rule(
-            self.format_firewall_rule_name(
-                'forseti-client-allow-ssh-external'),
-            [self.gcp_service_acct_email],
-            constants.FirewallRuleAction.ALLOW,
-            ['tcp:22'],
-            constants.FirewallRuleDirection.INGRESS,
-            100,
-            self.config.vpc_host_network,
-            '0.0.0.0/0')
-
-        # This rule overrides the implied deny for ingress
-        # because it is specific to service account with a higher priority
-        # that would be harder to be overriden.
-        gcloud.create_firewall_rule(
-            self.format_firewall_rule_name('forseti-client-deny-all'),
-            [self.gcp_service_acct_email],
-            constants.FirewallRuleAction.DENY,
-            ['all'],
-            constants.FirewallRuleDirection.INGRESS,
-            200,
-            self.config.vpc_host_network)

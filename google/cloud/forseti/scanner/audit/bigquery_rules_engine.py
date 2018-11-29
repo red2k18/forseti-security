@@ -69,7 +69,9 @@ class BigqueryRulesEngine(bre.BaseRulesEngine):
         """
         self.rule_book = BigqueryRuleBook(self._load_rule_definitions())
 
-    def find_violations(self, parent_project, bq_acl, force_rebuild=False):
+    # TODO: The naming is confusing and needs to be fixed in all scanners.
+    def find_policy_violations(self, parent_project, bq_acl,
+                               force_rebuild=False):
         """Determine whether Big Query datasets violate rules.
 
         Args:
@@ -84,7 +86,7 @@ class BigqueryRulesEngine(bre.BaseRulesEngine):
         if self.rule_book is None or force_rebuild:
             self.build_rule_book()
 
-        violations = self.rule_book.find_violations(
+        violations = self.rule_book.find_policy_violations(
             parent_project, bq_acl)
 
         return violations
@@ -200,12 +202,14 @@ class BigqueryRuleBook(bre.BaseRuleBook):
             raise audit_errors.InvalidRulesSchemaError(
                 'Missing bindings in rule {}'.format(rule_index))
 
-        return Rule(rule_name=rule_def.get('name'),
+        rule = Rule(rule_name=rule_def.get('name'),
                     rule_index=rule_index,
                     rule_reference=RuleReference(
                         dataset_ids=dataset_ids,
                         bindings=bindings,
                         mode=mode))
+
+        return rule
 
     @classmethod
     def _get_binding_from_old_syntax(cls, rule_def):
@@ -268,7 +272,7 @@ class BigqueryRuleBook(bre.BaseRuleBook):
                 )
                 self.resource_rules_map[resource].append(rule)
 
-    def find_violations(self, resource, bq_acl):
+    def find_policy_violations(self, resource, bq_acl):
         """Find acl violations in the rule book.
 
         Args:
@@ -290,7 +294,7 @@ class BigqueryRuleBook(bre.BaseRuleBook):
         for res in resource_ancestors:
             for rule in self.resource_rules_map.get(res, []):
                 violations = itertools.chain(
-                    violations, rule.find_violations(bq_acl))
+                    violations, rule.find_policy_violations(bq_acl))
 
         return violations
 
@@ -301,7 +305,7 @@ class Rule(object):
     """
 
     rule_violation_attributes = ['resource_type', 'resource_id',
-                                 'resource_name', 'full_name', 'rule_name',
+                                 'full_name', 'rule_name',
                                  'rule_index', 'violation_type', 'dataset_id',
                                  'role', 'special_group', 'user_email',
                                  'domain', 'group_email', 'view',
@@ -324,7 +328,8 @@ class Rule(object):
         self.rule_index = rule_index
         self.rule_reference = rule_reference
 
-    def find_violations(self, bigquery_acl):
+    # TODO: The naming is confusing and needs to be fixed in all scanners.
+    def find_policy_violations(self, bigquery_acl):
         """Find BigQuery acl violations in the rule book.
 
         Args:
@@ -374,8 +379,7 @@ class Rule(object):
 
         if has_applicable_rules and has_violation:
             yield self.RuleViolation(
-                resource_name=bigquery_acl.dataset_id,
-                resource_type=resource_mod.ResourceType.DATASET,
+                resource_type=resource_mod.ResourceType.BIGQUERY,
                 resource_id=bigquery_acl.dataset_id,
                 full_name=bigquery_acl.full_name,
                 rule_name=self.rule_name,

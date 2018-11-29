@@ -602,7 +602,7 @@ class JsonOutput(Output):
             Args:
                 obj (object): Object to write as json
         """
-        print MessageToJson(obj, including_default_value_fields=True)
+        print MessageToJson(obj)
 
 
 def run_config(_, config, output, config_env):
@@ -1181,7 +1181,8 @@ def get_config_path():
         str: Configuration path.
     """
 
-    config_path = os.path.join(os.getenv('HOME'), '.forseti')
+    default_path = os.path.join(os.getenv('HOME'), '.forseti')
+    config_path = read_env('FORSETI_SERVER_CONFIG', default_path)
     return config_path
 
 

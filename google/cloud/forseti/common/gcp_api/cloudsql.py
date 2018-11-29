@@ -23,7 +23,6 @@ from google.cloud.forseti.common.gcp_api import repository_mixins
 from google.cloud.forseti.common.util import logger
 
 LOGGER = logger.get_logger(__name__)
-API_NAME = 'sqladmin'
 
 
 class CloudSqlRepositoryClient(_base_repository.BaseRepositoryClient):
@@ -48,7 +47,7 @@ class CloudSqlRepositoryClient(_base_repository.BaseRepositoryClient):
         self._instances = None
 
         super(CloudSqlRepositoryClient, self).__init__(
-            API_NAME, versions=['v1beta4'],
+            'sqladmin', versions=['v1beta4'],
             quota_max_calls=quota_max_calls,
             quota_period=quota_period,
             use_rate_limiter=use_rate_limiter)
@@ -91,7 +90,7 @@ class CloudsqlClient(object):
             **kwargs (dict): The kwargs.
         """
         max_calls, quota_period = api_helpers.get_ratelimiter_config(
-            global_configs, API_NAME)
+            global_configs, 'sqladmin')
 
         self.repository = CloudSqlRepositoryClient(
             quota_max_calls=max_calls,

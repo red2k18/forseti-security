@@ -30,8 +30,7 @@ def create_list_of_instence_network_interface_obj_from_data():
     fake_instance_scanner_list = []
     for data in fake_instance_scanner_data.INSTANCE_DATA:
         fake_instance_scanner_list.append(
-            instance.Instance(
-                'fake-instance', **data).create_network_interfaces())
+            instance.Instance(**data).create_network_interfaces())
     return fake_instance_scanner_list
 
 
@@ -101,7 +100,7 @@ class InstanceNetworkInterfaceTest(unittest_utils.ForsetiTestCase):
             create_list_of_instence_network_interface_obj_from_data())
         actual_violations_list = []
         for instance_network_interface in fake_ini_data:
-            violation = rules_engine.find_violations(
+            violation = rules_engine.find_policy_violations(
                 instance_network_interface)
             actual_violations_list.extend(violation)
         self.assertEqual([], actual_violations_list)
@@ -119,7 +118,7 @@ class InstanceNetworkInterfaceTest(unittest_utils.ForsetiTestCase):
             create_list_of_instence_network_interface_obj_from_data())
         actual_violations_list = []
         for instance_network_interface in fake_ini_data:
-            violation = rules_engine.find_violations(
+            violation = rules_engine.find_policy_violations(
                 instance_network_interface)
             actual_violations_list.extend(violation)
         self.assertEqual(1, len(actual_violations_list))
@@ -139,7 +138,7 @@ class InstanceNetworkInterfaceTest(unittest_utils.ForsetiTestCase):
             create_list_of_instence_network_interface_obj_from_data())
         actual_violations_list = []
         for instance_network_interface in fake_ini_data:
-            violation = rules_engine.find_violations(
+            violation = rules_engine.find_policy_violations(
                 instance_network_interface)
             actual_violations_list.extend(violation)
         self.assertEqual([], actual_violations_list)
@@ -156,7 +155,7 @@ class InstanceNetworkInterfaceTest(unittest_utils.ForsetiTestCase):
             create_list_of_instence_network_interface_obj_from_data())
         actual_violations_list = []
         for instance_network_interface in fake_ini_data:
-            violation = rules_engine.find_violations(
+            violation = rules_engine.find_policy_violations(
                 instance_network_interface)
             actual_violations_list.extend(violation)
         self.assertEqual(1, len(actual_violations_list))

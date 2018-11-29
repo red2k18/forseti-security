@@ -21,39 +21,19 @@ import json
 import os
 
 from google.cloud.forseti.common.gcp_type import key
-from google.cloud.forseti.common.gcp_type import resource
 
 
 # pylint: disable=too-many-instance-attributes
-class Instance(resource.Resource):
+class Instance(object):
     """Represents Instance resource."""
 
-    RESOURCE_NAME_FMT = 'instances/%s'
-
-    def __init__(self, instance_id, parent=None, **kwargs):
+    def __init__(self, **kwargs):
         """Instance resource.
 
         Args:
-            instance_id (str): id of the instance.
-            parent (Resource): Parent resource of this instance.
-                Should be a project.
             **kwargs (dict): The object's attributes.
-
-        Raises:
-            TypeError: If unexpected parent type.
         """
-        super(Instance, self).__init__(
-            resource_id=instance_id,
-            resource_type=resource.ResourceType.INSTANCE,
-            name=kwargs.get('name'),
-            display_name=kwargs.get('name'),
-            parent=parent,
-            locations=kwargs.get('locations'))
-
-        if parent and parent.type != 'project':
-            raise TypeError(
-                'Unexpected parent type: got {}, want project'.format(
-                    parent.type))
+        self.id = kwargs.get('id')
         self.full_name = kwargs.get('full_name')
         self.can_ip_forward = kwargs.get('can_ip_forward')
         self.cpu_platform = kwargs.get('cpu_platform')
@@ -62,52 +42,65 @@ class Instance(resource.Resource):
         self.disks = kwargs.get('disks')
         self.machine_type = kwargs.get('machine_type')
         self.metadata = kwargs.get('metadata')
+        self.name = kwargs.get('name')
         self.network_interfaces = kwargs.get('network_interfaces')
+        self.project_id = kwargs.get('project_id')
         self.resource_id = kwargs.get('id')
         self.scheduling = kwargs.get('scheduling')
         self.service_accounts = kwargs.get('service_accounts')
         self.status = kwargs.get('status')
         self.status_message = kwargs.get('status_message')
         self.tags = kwargs.get('tags')
-        self.data = kwargs.get('data')
+        self.zone = kwargs.get('zone')
+        self._json = kwargs.get('raw_instance')
 
     @classmethod
-    def from_json(cls, parent, json_string):
+    def from_dict(cls, full_name, instance, project_id=None):
+        """Creates an Instance from an instance dict.
+
+        Args:
+            full_name (str): The full resource name and ancestory.
+            instance (dict): An instance resource dict.
+            project_id (str): A project id for the resource.
+
+        Returns:
+            Instance: A new Instance object.
+        """
+        kwargs = {'project_id': project_id,
+                  'id': instance.get('id'),
+                  'full_name': full_name,
+                  'creation_timestamp': instance.get('creationTimestamp'),
+                  'name': instance.get('name'),
+                  'description': instance.get('description'),
+                  'can_ip_forward': instance.get('canIpForward'),
+                  'cpu_platform': instance.get('cpuPlatform'),
+                  'disks': instance.get('disks', []),
+                  'machine_type': instance.get('machineType'),
+                  'metadata': instance.get('metadata', {}),
+                  'network_interfaces': instance.get('networkInterfaces', []),
+                  'scheduling': instance.get('scheduling', {}),
+                  'service_accounts': instance.get('serviceAccounts', []),
+                  'status': instance.get('status'),
+                  'status_message': instance.get('statusMessage'),
+                  'tags': instance.get('tags'),
+                  'zone': instance.get('zone'),
+                  'raw_instance': json.dumps(instance)}
+        return cls(**kwargs)
+
+    @staticmethod
+    def from_json(full_name, json_string, project_id=None):
         """Creates an Instance from an instance JSON string.
 
         Args:
-            parent (Resource): resource this instance belongs to. Should be
-                a project.
-            json_string(str): JSON string of a instance GCP API response.
+            full_name (str): The full resource name and ancestory.
+            json_string (str): A json string representing the instance.
+            project_id (str): A project id for the resource.
 
         Returns:
             Instance: A new Instance object.
         """
         instance = json.loads(json_string)
-
-        instance_key = Key.from_url(instance.get('selfLink'))
-
-        kwargs = {
-            'full_name': '{}instance/{}/'.format(parent.full_name,
-                                                 instance_key.name),
-            'creation_timestamp': instance.get('creationTimestamp'),
-            'name': instance.get('name'),
-            'description': instance.get('description'),
-            'can_ip_forward': instance.get('canIpForward'),
-            'cpu_platform': instance.get('cpuPlatform'),
-            'disks': instance.get('disks', []),
-            'machine_type': instance.get('machineType'),
-            'metadata': instance.get('metadata', {}),
-            'network_interfaces': instance.get('networkInterfaces', []),
-            'scheduling': instance.get('scheduling', {}),
-            'service_accounts': instance.get('serviceAccounts', []),
-            'status': instance.get('status'),
-            'status_message': instance.get('statusMessage'),
-            'tags': instance.get('tags'),
-            'data': json.dumps(instance),
-        }
-        return cls(instance_key.name, parent=parent,
-                   locations=[instance_key.zone], **kwargs)
+        return Instance.from_dict(full_name, instance, project_id)
 
     def _create_json_str(self):
         """Creates a json string based on the object attributes.
@@ -132,8 +125,8 @@ class Instance(resource.Resource):
             'status': self.status,
             'statusMessage': self.status_message,
             'tags': self.tags,
-            'locations': self.locations,
-            'inventory_data': self.data}
+            'zone': self.zone,
+            'inventory_data': self._json}
 
         # Strip out empty values
         resource_dict = dict((k, v) for k, v in resource_dict.items() if v)
@@ -146,10 +139,10 @@ class Instance(resource.Resource):
         Returns:
             str: json str.
         """
-        if not self.data:
-            self.data = self._create_json_str()
+        if not self._json:
+            self._json = self._create_json_str()
 
-        return self.data
+        return self._json
 
     @property
     def key(self):
@@ -158,9 +151,7 @@ class Instance(resource.Resource):
         Returns:
             Key: the key
         """
-        project_id = self.parent.id if self.parent else ''
-        zone = self.locations[0] if self.locations else ''
-        return Key.from_args(project_id, zone, self.id)
+        return Key.from_args(self.project_id, self.zone, self.name)
 
     def create_network_interfaces(self):
         """Return a list of network_interface objects.

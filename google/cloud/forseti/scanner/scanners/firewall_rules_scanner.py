@@ -75,7 +75,6 @@ class FirewallPolicyScanner(base_scanner.BaseScanner):
             violation_dict = {
                 'resource_id': violation.resource_id,
                 'resource_type': violation.resource_type,
-                'resource_name': violation.resource_name,
                 'full_name': violation.full_name,
                 'rule_name': violation.rule_id,
                 'rule_index': rule_indices.get(violation.rule_id, 0),
@@ -111,7 +110,7 @@ class FirewallPolicyScanner(base_scanner.BaseScanner):
             resource = resource_util.create_resource(
                 resource_id=resource_id, resource_type='project')
             LOGGER.debug('%s => %s', resource, p_policies)
-            violations = self.rules_engine.find_violations(
+            violations = self.rules_engine.find_policy_violations(
                 resource, p_policies)
             all_violations.extend(violations)
         return all_violations

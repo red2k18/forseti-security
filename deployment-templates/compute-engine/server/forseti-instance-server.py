@@ -113,11 +113,10 @@ def GenerateConfig(context):
 exec > /tmp/deployment.log
 exec 2>&1
 
-# Ubuntu available packages refresh.
+# Ubuntu update.
 sudo apt-get update -y
-
-# Install Google Cloud SDK
-sudo apt-get --assume-yes install google-cloud-sdk
+sudo apt-get upgrade -y
+sudo apt-get update && sudo apt-get --assume-yes install google-cloud-sdk
 
 USER_HOME=/home/ubuntu
 
@@ -197,10 +196,6 @@ bash ./install/gcp/scripts/initialize_forseti_services.sh
 echo "Starting services."
 systemctl start cloudsqlproxy
 sleep 5
-
-echo "Attempting to update database schema, if necessary."
-python $USER_HOME/forseti-security/install/gcp/upgrade_tools/db_migrator.py
-
 systemctl start forseti
 echo "Success! The Forseti API server has been started."
 

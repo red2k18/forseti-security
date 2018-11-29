@@ -25,8 +25,6 @@ from google.cloud.forseti.common.util import logger
 
 LOGGER = logger.get_logger(__name__)
 
-API_NAME = 'admin'
-
 REQUIRED_SCOPES = frozenset([
     'https://www.googleapis.com/auth/admin.directory.group.readonly',
     'https://www.googleapis.com/auth/admin.directory.user.readonly'
@@ -69,7 +67,7 @@ class AdminDirectoryRepositoryClient(_base_repository.BaseRepositoryClient):
         self._users = None
 
         super(AdminDirectoryRepositoryClient, self).__init__(
-            API_NAME, versions=['directory_v1'],
+            'admin', versions=['directory_v1'],
             credentials=credentials,
             quota_max_calls=quota_max_calls,
             quota_period=quota_period,
@@ -163,7 +161,7 @@ class AdminDirectoryClient(object):
             REQUIRED_SCOPES)
 
         max_calls, quota_period = api_helpers.get_ratelimiter_config(
-            global_configs, API_NAME)
+            global_configs, 'admin')
 
         self.repository = AdminDirectoryRepositoryClient(
             credentials=credentials,

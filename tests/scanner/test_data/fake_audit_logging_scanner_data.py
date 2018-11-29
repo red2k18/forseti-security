@@ -194,8 +194,7 @@ AUDIT_LOGGING_VIOLATIONS = [
                   log_type='ADMIN_READ',
                   unexpected_exemptions=('user:user1@org.com',
                                          'user:user2@org.com'),
-                  resource_data='proj-2-data',
-                  resource_name='proj-2'),
+                  resource_data='proj-2-data'),
     RuleViolation(resource_type='project',
                   resource_id='proj-3',
                   full_name='organization/234/project/proj-3/',
@@ -205,8 +204,7 @@ AUDIT_LOGGING_VIOLATIONS = [
                   service='compute.googleapis.com',
                   log_type='DATA_READ',
                   unexpected_exemptions=None,
-                  resource_data='proj-3-data',
-                  resource_name='proj-3'),
+                  resource_data='proj-3-data'),
 ]
 
 FLATTENED_AUDIT_LOGGING_VIOLATIONS = [

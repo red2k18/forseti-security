@@ -125,7 +125,6 @@ VIOLATIONS = {
          'inventory_index_id': '2018-03-14T14:49:36.101287',
          'resource_id': 'be-1-ext',
          'resource_type': 'bucket',
-         'resource_name': 'be-1-ext',
          'rule_index': 1L,
          'rule_name': 'Allow only service accounts to have access',
          'violation_data': {
@@ -148,7 +147,6 @@ VIOLATIONS = {
              'resourceId': 'ps/_/buckets/be-1-ext'},
          'inventory_index_id': '2018-03-14T14:49:36.101287',
          'resource_id': 'be-1-ext',
-         'resource_name': 'be-1-ext',
          'resource_type': 'bucket',
          'rule_index': 1L,
          'rule_name': 'Allow only service accounts to have access',
@@ -173,7 +171,6 @@ VIOLATIONS = {
              'resourceId': 'ps/_/buckets/be-1-ext'},
          'inventory_index_id': '2018-03-14T14:49:36.101287',
          'resource_id': 'be-1-ext',
-         'resource_name': 'be-1-ext',
          'resource_type': 'bucket',
          'rule_index': 1L,
          'rule_name': 'Allow only service accounts to have access',
@@ -198,7 +195,6 @@ VIOLATIONS = {
          'inventory_index_id': '2018-03-14T14:49:36.101287',
          'resource_id': 'be-1-ext',
          'resource_type': 'bucket',
-         'resource_name': 'be-1-ext',
          'rule_index': 1L,
          'rule_name': 'Allow only service accounts to have access',
          'violation_data': {

@@ -160,32 +160,6 @@ GET_EFFECTIVE_ORG_POLICY = """
 }
 """
 
-GET_LIENS = """
-{
-  "liens": [
-    {
-      "name": "liens/test-lien1",
-      "parent": "projects/forseti-system-test",
-      "restrictions": [
-        "resourcemanager.projects.delete"
-      ],
-      "origin": "testing",
-      "createTime": "2018-09-05T14:45:46.534Z"
-    }
-  ]
-}
-"""
-
-EXPECTED_LIENS = [{
-    "name": "liens/test-lien1",
-    "parent": "projects/forseti-system-test",
-    "restrictions": [
-        "resourcemanager.projects.delete"
-    ],
-    "origin": "testing",
-    "createTime": "2018-09-05T14:45:46.534Z"
-}]
-
 LIST_ORG_POLICIES = """
 {
  "policies": [
@@ -287,8 +261,6 @@ FAKE_PROJECTS_API_RESPONSE1 = {
             'lifecycleState': 'ACTIVE',
         }]
 }
-
-EXPECTED_FAKE_PROJECTS_API_RESPONSE1_IDS = [u'project1', u'project2', u'project3']
 
 FAKE_ACTIVE_PROJECTS_API_RESPONSE = {
     'projects': [

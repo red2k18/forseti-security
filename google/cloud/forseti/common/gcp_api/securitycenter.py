@@ -22,7 +22,6 @@ from google.cloud.forseti.common.gcp_api import repository_mixins
 from google.cloud.forseti.common.util import logger
 
 LOGGER = logger.get_logger(__name__)
-API_NAME = 'securitycenter'
 
 
 class SecurityCenterRepositoryClient(_base_repository.BaseRepositoryClient):
@@ -31,8 +30,7 @@ class SecurityCenterRepositoryClient(_base_repository.BaseRepositoryClient):
     def __init__(self,
                  quota_max_calls=None,
                  quota_period=1.0,
-                 use_rate_limiter=True,
-                 version=None):
+                 use_rate_limiter=True):
         """Constructor.
         Args:
             quota_max_calls (int): Allowed requests per <quota_period> for the
@@ -40,7 +38,6 @@ class SecurityCenterRepositoryClient(_base_repository.BaseRepositoryClient):
             quota_period (float): The time period to track requests over.
             use_rate_limiter (bool): Set to false to disable the use of a rate
                 limiter for this service.
-            version (str): The version of the API to use.
         """
         LOGGER.debug('Initializing SecurityCenterRepositoryClient')
         if not quota_max_calls:
@@ -48,18 +45,11 @@ class SecurityCenterRepositoryClient(_base_repository.BaseRepositoryClient):
 
         self._findings = None
 
-        self.version = version
-        use_versioned_discovery_doc = False
-        if self.version == 'v1beta1':
-            use_versioned_discovery_doc = True
-            # alpha would use the discovery_doc without version in the name
-
         super(SecurityCenterRepositoryClient, self).__init__(
-            API_NAME, versions=[self.version],
+            'securitycenter', versions=['v1alpha3'],
             quota_max_calls=quota_max_calls,
             quota_period=quota_period,
-            use_rate_limiter=use_rate_limiter,
-            use_versioned_discovery_doc=use_versioned_discovery_doc)
+            use_rate_limiter=use_rate_limiter)
 
     # Turn off docstrings for properties.
     # pylint: disable=missing-return-doc, missing-return-type-doc
@@ -68,8 +58,7 @@ class SecurityCenterRepositoryClient(_base_repository.BaseRepositoryClient):
         """Returns _SecurityCenterOrganizationsFindingsRepository instance."""
         if not self._findings:
             self._findings = self._init_repository(
-                _SecurityCenterOrganizationsFindingsRepository,
-                version=self.version)
+                _SecurityCenterOrganizationsFindingsRepository)
         return self._findings
     # pylint: enable=missing-return-doc, missing-return-type-doc
 
@@ -88,17 +77,8 @@ class _SecurityCenterOrganizationsFindingsRepository(
 
         LOGGER.debug(
             'Creating _SecurityCenterOrganizationsFindingsRepositoryClient')
-
-        # pylint: disable=protected-access
-        if kwargs.get('gcp_service')._resourceDesc.get('version') == 'v1beta1':
-            component = 'organizations.sources.findings'
-        else:
-            # alpha api
-            component = 'organizations.findings'
-        # pylint: enable=protected-access
-
         super(_SecurityCenterOrganizationsFindingsRepository, self).__init__(
-            component=component, **kwargs)
+            component='organizations.findings', **kwargs)
 
 
 class SecurityCenterClient(object):
@@ -107,67 +87,35 @@ class SecurityCenterClient(object):
     https://cloud.google.com/security-command-center/docs/reference/rest
     """
 
-    def __init__(self, version=None):
+    def __init__(self):
         """Initialize.
 
         TODO: Add api quota configs here.
         max_calls, quota_period = api_helpers.get_ratelimiter_config(
-            inventory_configs.api_quota_configs, API_NAME)
-
-        Args:
-            version (str): The version of the API to use.
+            inventory_configs.api_quota_configs, 'securitycenter')
         """
-        LOGGER.debug('Initializing SecurityCenterClient with version: %s',
-                     version)
-        self.repository = SecurityCenterRepositoryClient(version=version)
+        LOGGER.debug('Initializing SecurityCenterClient')
+        self.repository = SecurityCenterRepositoryClient()
 
-    def create_finding(self, finding, organization_id=None, source_id=None,
-                       finding_id=None):
+    def create_finding(self, organization_id, finding):
         """Creates a finding in CSCC.
 
         Args:
-            finding (dict): Forseti violation in CSCC format.
             organization_id (str): The id prefixed with 'organizations/'.
-            source_id (str): Unique ID assigned by CSCC, to the organization
-                that the violations are originating from.
-            finding_id (str): id hash of the CSCC finding
+            finding (dict): Forseti violation in CSCC format.
 
         Returns:
             dict: An API response containing one page of results.
         """
-        if source_id:
-            # beta api
-            try:
-                LOGGER.debug('Creating finding with beta api.')
-                response = self.repository.findings.create(
-                    arguments={
-                        'body': finding,
-                        'parent': source_id,
-                        'findingId': finding_id
-                    }
-                )
-                LOGGER.debug('Created finding response with CSCC beta api: %s',
-                             response)
-                return response
-            # handle 409, finding exists
-            except (errors.HttpError, HttpLib2Error) as e:
-                LOGGER.exception(
-                    'Unable to create CSCC finding: Resource: %s', finding)
-                violation_data = (
-                    finding.get('source_properties').get('violation_data'))
-                raise api_errors.ApiExecutionError(violation_data, e)
-
-        # alpha api
         try:
-            LOGGER.debug('Creating finding with alpha api.')
+            LOGGER.debug('Creating finding.')
             response = self.repository.findings.create(
                 arguments={
                     'body': {'sourceFinding': finding},
                     'orgName': organization_id
                 }
             )
-            LOGGER.debug('Created finding response with CSCC alpha: %s',
-                         response)
+            LOGGER.debug('Created finding response in CSCC: %s', response)
             return response
         except (errors.HttpError, HttpLib2Error) as e:
             LOGGER.exception(

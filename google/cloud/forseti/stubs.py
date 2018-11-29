@@ -12,7 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Provide entry points for the console script entry points."""
+"""Provide entry points for the console script entry points.
+
+Since the Forseti tools use google-apputils, the setuptools console script
+entry points are handled a little differently.  For more information on the
+apputils run_script_module, refer to:
+
+https://github.com/google/google-apputils/blob/master/google/apputils/run_script_module.py
+"""
 
 
 # pylint: disable=invalid-name

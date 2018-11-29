@@ -72,10 +72,9 @@ class BucketsAclScanner(base_scanner.BaseScanner):
                               'full_name': violation.full_name,
                               'project_id': violation.project_id}
             yield {
-                'full_name': violation.full_name,
                 'resource_id': violation.resource_id,
+                'full_name': violation.full_name,
                 'resource_type': violation.resource_type,
-                'resource_name': violation.resource_name,
                 'rule_index': violation.rule_index,
                 'rule_name': violation.rule_name,
                 'violation_type': violation.violation_type,
@@ -105,7 +104,7 @@ class BucketsAclScanner(base_scanner.BaseScanner):
         LOGGER.info('Finding bucket acl violations...')
 
         for bucket_acl in bucket_acls:
-            violations = self.rules_engine.find_violations(
+            violations = self.rules_engine.find_policy_violations(
                 bucket_acl)
             LOGGER.debug(violations)
             all_violations.extend(violations)

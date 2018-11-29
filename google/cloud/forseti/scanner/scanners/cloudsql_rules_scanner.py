@@ -71,7 +71,6 @@ class CloudSqlAclScanner(base_scanner.BaseScanner):
             yield {
                 'resource_id': violation.resource_id,
                 'resource_type': violation.resource_type,
-                'resource_name': violation.resource_name,
                 'full_name': violation.full_name,
                 'rule_index': violation.rule_index,
                 'rule_name': violation.rule_name,
@@ -102,7 +101,7 @@ class CloudSqlAclScanner(base_scanner.BaseScanner):
         LOGGER.info('Finding CloudSQL acl violations...')
 
         for cloudsql_acl in cloudsql_acls:
-            violations = self.rules_engine.find_violations(
+            violations = self.rules_engine.find_policy_violations(
                 cloudsql_acl)
             LOGGER.debug(violations)
             all_violations.extend(violations)

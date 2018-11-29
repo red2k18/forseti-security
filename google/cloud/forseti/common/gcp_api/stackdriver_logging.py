@@ -23,7 +23,6 @@ from google.cloud.forseti.common.gcp_api import repository_mixins
 from google.cloud.forseti.common.util import logger
 
 LOGGER = logger.get_logger(__name__)
-API_NAME = 'logging'
 
 
 class StackdriverLoggingRepositoryClient(_base_repository.BaseRepositoryClient):
@@ -51,7 +50,7 @@ class StackdriverLoggingRepositoryClient(_base_repository.BaseRepositoryClient):
         self._projects_sinks = None
 
         super(StackdriverLoggingRepositoryClient, self).__init__(
-            API_NAME, versions=['v2'],
+            'logging', versions=['v2'],
             quota_max_calls=quota_max_calls,
             quota_period=quota_period,
             use_rate_limiter=use_rate_limiter)
@@ -215,7 +214,7 @@ class StackdriverLoggingClient(object):
             **kwargs (dict): The kwargs.
         """
         max_calls, quota_period = api_helpers.get_ratelimiter_config(
-            global_configs, API_NAME)
+            global_configs, 'logging')
 
         self.repository = StackdriverLoggingRepositoryClient(
             quota_max_calls=max_calls,

@@ -104,15 +104,8 @@ class GrpcModeller(model_pb2_grpc.ModellerServicer):
         """
 
         model_name = request.handle
-        try:
-            self.modeller.delete_model(model_name)
-            # pylint: disable=no-member
-            status = model_pb2.DeleteModelReply.Status.Value('SUCCESS')
-        except Exception:  # pylint: disable=broad-except
-            LOGGER.exception('Unable to delete model: %s', model_name)
-            # pylint: disable=no-member
-            status = model_pb2.DeleteModelReply.Status.Value('FAIL')
-        return model_pb2.DeleteModelReply(status=status)
+        self.modeller.delete_model(model_name)
+        return model_pb2.DeleteModelReply()
 
     def ListModel(self, request, _):
         """List all models.
