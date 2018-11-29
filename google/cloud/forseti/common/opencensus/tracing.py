@@ -230,6 +230,14 @@ def get_tracer(inst=None, attr=None):
         # Get tracer from OpenCensus context.
         if tracer is None:
             tracer = execution_context.get_opencensus_tracer()
+            if inst is not None:
+                for _ in default_attributes:
+                    try:
+                        rsetattr(inst, _, tracer)
+                        method += ' + set to attribute %s' % _
+                        break
+                    except Exception:
+                        pass
 
             # If working with an instance of a class, set tracer to the proper
             # instance attribute (either the passed `attr` or one of the default
@@ -304,7 +312,6 @@ def trace(func):
         Returns:
             func: Decorated function.
         """
-
         if OPENCENSUS_ENABLED:
             # If the decorator is applied on a class method, extract the 'self'
             # attribute from the method arguments to get / set tracer as an
