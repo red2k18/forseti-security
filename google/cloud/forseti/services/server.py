@@ -35,6 +35,7 @@ from google.cloud.forseti.services.server_config.service import GrpcServerConfig
 
 LOGGER = logger.get_logger(__name__)
 
+# SERVICE_MAP
 SERVICE_MAP = {
     'explain': GrpcExplainerFactory,
     'inventory': GrpcInventoryFactory,
