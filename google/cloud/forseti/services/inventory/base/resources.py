@@ -561,7 +561,8 @@ def k8_resource_class_factory(resource_type):
             """
             # Resource does not have a globally unique ID, use size_t hash
             # of uid under metadata key.
-            return size_t_hash(self.get('metadata').get('uid'))
+            # return size_t_hash(self.get('metadata').get('uid'))
+            return size_t_hash(self['metadata']['uid'])
 
     return ResourceSubclass
 
@@ -2288,7 +2289,7 @@ class KubernetesNodeIterator(ResourceIterator):
         """
         gcp = self.client
         try:
-            for data, metadata in gcp.iter_k8s_nodes(
+            for data, metadata in gcp.iter_kubernetes_nodes(
                     project_id=self.resource.parent()['projectId'],
                     zone=self.resource['zone'],
                     cluster=self.resource['name']):
@@ -2310,7 +2311,7 @@ class KubernetesPodIterator(ResourceIterator):
         """
         gcp = self.client
         try:
-            for data, metadata in gcp.iter_k8s_pods(
+            for data, metadata in gcp.iter_kubernetes_pods(
                     project_id=self.resource.parent().parent()['projectId'],
                     zone=self.resource.parent()['zone'],
                     cluster=self.resource.parent()['name'],
@@ -2333,7 +2334,8 @@ class KubernetesNamespaceIterator(ResourceIterator):
         """
         gcp = self.client
         try:
-            for data, metadata in gcp.iter_k8s_namespaces(
+            p = self.resource.parent()
+            for data, metadata in gcp.iter_kubernetes_namespaces(
                     project_id=self.resource.parent()['projectId'],
                     zone=self.resource['zone'],
                     cluster=self.resource['name']):
@@ -2355,7 +2357,7 @@ class KubernetesRoleIterator(ResourceIterator):
         """
         gcp = self.client
         try:
-            for data, metadata in gcp.iter_k8s_roles(
+            for data, metadata in gcp.iter_kubernetes_roles(
                     project_id=self.resource.parent().parent()['projectId'],
                     zone=self.resource.parent()['zone'],
                     cluster=self.resource.parent()['name'],
@@ -2378,7 +2380,7 @@ class KubernetesRoleBindingIterator(ResourceIterator):
         """
         gcp = self.client
         try:
-            for data, metadata in gcp.iter_k8s_rolebindings(
+            for data, metadata in gcp.iter_kubernetes_rolebindings(
                     project_id=self.resource.parent().parent()['projectId'],
                     zone=self.resource.parent()['zone'],
                     cluster=self.resource.parent()['name'],
@@ -2401,7 +2403,7 @@ class KubernetesClusterRoleIterator(ResourceIterator):
         """
         gcp = self.client
         try:
-            for data, metadata in gcp.iter_k8s_clusterroles(
+            for data, metadata in gcp.iter_kubernetes_clusterroles(
                     project_id=self.resource.parent()['projectId'],
                     zone=self.resource['zone'],
                     cluster=self.resource['name']):
@@ -2423,7 +2425,7 @@ class KubernetesClusterRoleBindingIterator(ResourceIterator):
         """
         gcp = self.client
         try:
-            for data, metadata in gcp.iter_k8s_clusterroles(
+            for data, metadata in gcp.iter_kubernetes_clusterrolebindings(
                     project_id=self.resource.parent()['projectId'],
                     zone=self.resource['zone'],
                     cluster=self.resource['name']):
@@ -2911,7 +2913,7 @@ FACTORIES = {
 
     'kubernetes_namespace': ResourceFactory({
         'dependsOn': ['kubernetes_cluster'],
-        'cls': KubernetesCluster,
+        'cls': KubernetesNamespace,
         'contains': [
             KubernetesPodIterator,
             KubernetesRoleIterator,
