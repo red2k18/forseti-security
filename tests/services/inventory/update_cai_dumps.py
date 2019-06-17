@@ -231,6 +231,132 @@ def kubernetes_cluster(item):
     return _create_asset(name, asset_type, parent_name, item.data(), None)
 
 
+def kubernetes_node(item):
+    parent = item.parent()
+    name = ('//container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}'
+            '/k8s/nodes/{}'.format(parent['projectId'],
+                                   item['zone'],
+                                   item['name'].split('/')[8],
+                                   item['name'].split('/')[-1:]))
+    asset_type = 'k8s.io/Node'
+    parent_name = (
+        '//container.googleapis.com/projects/{}/zones/{}/clusters/{}'.
+        format(parent['projectId'],
+               parent['zone'],
+               parent['name'])),
+    return _create_asset(name, asset_type, parent_name, item.data(), None)
+
+
+def kubernetes_pod(item):
+    parent = item.parent()
+    name = ('//container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}'
+            '/k8s/namespaces/{}/pods/{}'.format(parent['projectId'],
+                                   item['zone'],
+                                   item['name'].split('/')[8],
+                                   item['name'].split('/')[-3],
+                                   item['name'].split('/')[-1]))
+    asset_type = 'k8s.io/Pod'
+    parent_name = (
+        '//container.googleapis.com/projects/{}/zones/{}/clusters/{}/k8s'
+        '/namespaces/{}'.
+        format(parent().parent['projectId'],
+               parent['zone'],
+               parent['cluster'],
+               parent['metadata']['name'])),
+    return _create_asset(name, asset_type, parent_name, item.data(), None)
+
+
+def kubernetes_namespace(item):
+    parent = item.parent()
+    name = ('//container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}'
+            '/k8s/namespaces/{}'.format(parent['projectId'],
+                                   item['zone'],
+                                   item['name'].split('/')[8],
+                                   item['self_link'].split('/')[-1:]))
+    asset_type = 'k8s.io/Namespace'
+    parent_name = (
+        '//container.googleapis.com/projects/{}/zones/{}/clusters/{}'.
+        format(parent['projectId'],
+               parent['zone'],
+               parent['name'])),
+    return _create_asset(name, asset_type, parent_name, item.data(), None)
+
+
+def kubernetes_role(item):
+    parent = item.parent()
+    name = ('//container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}'
+            '/k8s/namespaces/{}/rbac.authorization.k8s.io/roles/{}'.
+            format(parent['projectId'],
+                   item['zone'],
+                   item['name'].split('/')[8],
+                   item['name'].split('/')[-3],
+                   item['name'].split('/')[-1]))
+    asset_type = 'rbac.authorization.k8s.io/Role',
+    parent_name = (
+        '//container.googleapis.com/projects/{}/zones/{}/clusters/{}/k8s'
+        '/namespaces/{}'.
+        format(parent().parent['projectId'],
+               parent['zone'],
+               parent['cluster'],
+               parent['metadata']['name'])),
+    return _create_asset(name, asset_type, parent_name, item.data(), None)
+
+
+def kubernetes_rolebinding(item):
+    parent = item.parent()
+    name = ('//container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}'
+            '/k8s/namespaces/{}/rbac.authorization.k8s.io/rolebindings/{}'.
+            format(parent['projectId'],
+                   item['zone'],
+                   item['name'].split('/')[8],
+                   item['name'].split('/')[-3],
+                   item['name'].split('/')[-1]))
+    asset_type = 'rbac.authorization.k8s.io/RoleBinding'
+    parent_name = (
+        '//container.googleapis.com/projects/{}/zones/{}/clusters/{}/k8s'
+        '/namespaces/{}'.
+        format(parent().parent['projectId'],
+               parent['zone'],
+               parent['name'],
+               parent['metadata']['name'])),
+    return _create_asset(name, asset_type, parent_name, item.data(), None)
+
+
+def kubernetes_clusterrole(item):
+    parent = item.parent()
+    name = ('//container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}'
+            '/k8s/rbac.authorization.k8s.io/clusterroles/{}'.
+            format(parent['projectId'],
+                   item['zone'],
+                   item['name'].split('/')[8],
+                   item['name'].split('/')[-1]))
+    asset_type = 'rbac.authorization.k8s.io/ClusterRole',
+    parent_name = (
+        '//container.googleapis.com/projects/{}/zones/{}/clusters/{}'.
+        format(parent['projectId'],
+               parent['zone'],
+               parent['name'])),
+    return _create_asset(name, asset_type, parent_name, item.data(), None)
+
+
+def kubernetes_clusterrolebinding(item):
+    parent = item.parent()
+    name = ('//container.googleapis.com/v1/projects/{}/zones/{}/clusters/{}'
+            '/k8s/rbac.authorization.k8s.io/clusterrolebindingss/{}'.
+            format(parent['projectId'],
+                   item['zone'],
+                   item['name'].split('/')[8],
+                   item['name'].split('/')[8],
+                   item['name'].split('/')[-1]))
+    asset_type = 'rbac.authorization.k8s.io/ClusterRoleBinding'
+    parent_name = (
+        '//container.googleapis.com/projects/{}/zones/{}/clusters/{}'.
+        format(parent['projectId'],
+               parent['zone'],
+               parent['name'])),
+    return _create_asset(name, asset_type, parent_name, item.data(), None)
+
+
 def _create_compute_asset(item, asset_type):
     parent = item.parent()
     self_link = '/'.join(item['selfLink'].split('/')[5:])
@@ -315,7 +441,8 @@ CAI_TYPE_MAP = {
     'instancegroup': instancegroup,
     'instancegroupmanager': instancegroupmanager,
     'instancetemplate': instancetemplate,
-    # 'kubernetes_cluster': kubernetes_cluster,
+    'kubernetes_cluster': kubernetes_cluster,
+    'kubernetes_node':kubernetes_node,
     'network': network,
     'role': role,
     'serviceaccount': serviceaccount,
